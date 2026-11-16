@@ -84,7 +84,7 @@ Tài khoản quản trị mẫu sau khi seed:
 
 | Email | Mật khẩu |
 | --- | --- |
-| `admin@stationery.com` | `Admin@123` |
+| `admin@stationery.com` | `Admin@123456789` |
 
 Đây là thông tin đăng nhập **chỉ dùng để phát triển cục bộ**. Hãy thay đổi hoặc xóa tài khoản mẫu trước khi đưa ứng dụng lên môi trường dùng thật.
 
