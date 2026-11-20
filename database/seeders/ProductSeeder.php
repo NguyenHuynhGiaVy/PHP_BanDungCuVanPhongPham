@@ -59,12 +59,12 @@ class ProductSeeder extends Seeder
             [$name, $categoryName, $brandName, $price] = $item;
 
             $productId = DB::table('products')->insertGetId([
-                'category_id' => $categories[$categoryName],
-                'brand_id' => $brands[$brandName],
+                'category_id' => $categories->get($categoryName) ?? $categories->first(),
+                'brand_id' => $brands->get($brandName) ?? $brands->first(),
                 'name' => $name,
                 'slug' => Str::slug($name),
-                'description' => 'San pham van phong pham '
-                    . $name . ' tai Stationery Store',
+                'description' => 'Sản phẩm văn phòng phẩm '
+                    .$name.' tai Stationery Store',
                 'status' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -73,18 +73,18 @@ class ProductSeeder extends Seeder
             $variantId = DB::table('product_variants')
                 ->insertGetId([
                     'product_id' => $productId,
-                    'sku' => 'STS-' . str_pad(
+                    'sku' => 'STS-'.str_pad(
                         $index + 1,
                         4,
                         '0',
                         STR_PAD_LEFT
                     ),
-                    'variant_name' => 'Mac dinh',
+                    'variant_name' => 'Mặc định',
                     'attributes' => json_encode([
                         'type' => 'standard',
                     ]),
                     'price' => $price,
-                    'compare_price' => $price * 1.1,
+                    'compare_price' => null,
                     'status' => 1,
                     'created_at' => $now,
                     'updated_at' => $now,
@@ -93,7 +93,7 @@ class ProductSeeder extends Seeder
             DB::table('product_images')->insert([
                 'product_id' => $productId,
                 'image_url' => 'images/products/product-'
-                    . ($index + 1) . '.jpg',
+                    .($index + 1).'.jpg',
                 'is_primary' => 1,
                 'sort_order' => 1,
                 'created_at' => $now,

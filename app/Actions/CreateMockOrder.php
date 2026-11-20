@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Inventory;
 use App\Models\InventoryTransaction;
 use App\Models\Order;
@@ -102,7 +103,47 @@ class CreateMockOrder
             ]);
 
             $shippingFeeInCents = 0;
-            $totalInCents = $subtotalInCents + $shippingFeeInCents;
+            $discountInCents = 0;
+            $couponCode = trim((string) ($checkoutDetails['coupon_code'] ?? ''));
+            $coupon = null;
+
+            if ($couponCode !== '') {
+                $coupon = Coupon::query()
+                    ->where('code', $couponCode)
+                    ->where('status', 1)
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now())
+                    ->lockForUpdate()
+                    ->first();
+
+                $canUseCoupon = $coupon !== null
+                    && ((float) $coupon->min_order_value * 100 <= $subtotalInCents)
+                    && ($coupon->usage_limit === null || $coupon->used_count < $coupon->usage_limit);
+
+                if ($coupon !== null && $coupon->audience === 'private') {
+                    $canUseCoupon = $canUseCoupon && $coupon->users()->whereKey($user->id)->exists();
+                }
+
+                if (! $canUseCoupon) {
+                    throw ValidationException::withMessages([
+                        'coupon_code' => 'Mã khuyến mãi không hợp lệ hoặc không áp dụng cho tài khoản của bạn.',
+                    ]);
+                }
+
+                if ($coupon->discount_type === 'percentage') {
+                    $discountInCents = (int) round($subtotalInCents * (float) $coupon->discount_value / 100);
+                } else {
+                    $discountInCents = $this->amountInCents((string) $coupon->discount_value);
+                }
+
+                if ($coupon->max_discount !== null) {
+                    $discountInCents = min($discountInCents, $this->amountInCents((string) $coupon->max_discount));
+                }
+
+                $discountInCents = min($discountInCents, $subtotalInCents);
+            }
+
+            $totalInCents = max(0, $subtotalInCents - $discountInCents + $shippingFeeInCents);
             $shippingAddress = implode(', ', [
                 $address->detail_address,
                 $address->ward,
@@ -110,17 +151,22 @@ class CreateMockOrder
                 $address->province,
             ]);
 
+            $paymentMethod = $checkoutDetails['payment_method'] ?? 'COD';
+            $paymentStatus = $paymentMethod === 'MOCK' ? 'PAID' : 'PENDING';
+            $orderStatus = $paymentMethod === 'MOCK' ? 'PROCESSING' : 'PENDING';
+
             $order = Order::query()->create([
                 'user_id' => $user->id,
                 'address_id' => $address->id,
+                'coupon_id' => $coupon?->id,
                 'order_code' => 'SS-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),
                 'subtotal' => $this->amountFromCents($subtotalInCents),
-                'discount_amount' => '0.00',
+                'discount_amount' => $this->amountFromCents($discountInCents),
                 'shipping_fee' => $this->amountFromCents($shippingFeeInCents),
                 'total_amount' => $this->amountFromCents($totalInCents),
-                'payment_method' => 'MOCK',
-                'payment_status' => 'PAID',
-                'order_status' => 'PROCESSING',
+                'payment_method' => $paymentMethod,
+                'payment_status' => $paymentStatus,
+                'order_status' => $orderStatus,
                 'note' => $checkoutDetails['note'] ?? null,
                 'receiver_name' => $address->receiver_name,
                 'receiver_phone' => $address->phone,
@@ -155,14 +201,21 @@ class CreateMockOrder
             }
 
             $order->payments()->create([
-                'transaction_code' => 'MOCK-'.Str::upper(Str::random(16)),
-                'payment_method' => 'MOCK',
+                'transaction_code' => $paymentMethod === 'MOCK' ? 'MOCK-'.Str::upper(Str::random(16)) : null,
+                'payment_method' => $paymentMethod,
                 'amount' => $this->amountFromCents($totalInCents),
-                'status' => 'SUCCESS',
-                'paid_at' => now(),
+                'status' => $paymentStatus === 'PAID' ? 'SUCCESS' : 'PENDING',
+                'paid_at' => $paymentStatus === 'PAID' ? now() : null,
             ]);
 
             $cart->items()->delete();
+
+            if ($coupon !== null) {
+                $coupon->increment('used_count');
+                $coupon->users()->whereKey($user->id)->updateExistingPivot($user->id, [
+                    'used_at' => now(),
+                ]);
+            }
 
             return $order;
         });

@@ -9,21 +9,30 @@ use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductImageController as AdminProductImageController;
 use App\Http\Controllers\Admin\ProductVariantController as AdminProductVariantController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\StaffController as AdminStaffController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('/gioi-thieu', [PageController::class, 'about'])->name('about');
+Route::get('/lien-he', [PageController::class, 'contact'])->name('contact');
+Route::post('/lien-he', [PageController::class, 'sendContact'])->name('contact.send');
 Route::get('/search', [ProductController::class, 'index'])->name('search');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/category/{category:slug}', [ProductController::class, 'category'])
@@ -35,6 +44,11 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/login', [AuthenticationController::class, 'storeLogin'])->middleware('throttle:login')->name('login.store');
     Route::get('/register', [AuthenticationController::class, 'createRegistration'])->name('register');
     Route::post('/register', [AuthenticationController::class, 'storeRegistration'])->name('register.store');
+
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
 Route::post('/logout', [AuthenticationController::class, 'destroy'])
@@ -63,13 +77,17 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/vnpay-return', [CheckoutController::class, 'vnpayReturn'])->name('checkout.vnpay.return');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->whereNumber('order')->name('orders.show');
+    Route::patch('/orders/{order}/received', [OrderController::class, 'confirmReceived'])->whereNumber('order')->name('orders.received');
 
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/products/{product}', [WishlistController::class, 'store'])->whereNumber('product')->name('wishlist.store');
     Route::delete('/wishlist/{wishlist}', [WishlistController::class, 'destroy'])->whereNumber('wishlist')->name('wishlist.destroy');
+
+    Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->whereNumber('product')->name('reviews.store');
 });
 
 Route::prefix('admin')
@@ -77,6 +95,8 @@ Route::prefix('admin')
     ->middleware(['auth', 'admin'])
     ->group(function (): void {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
+        Route::get('/dashboard/export-excel', [AdminDashboardController::class, 'exportExcel'])
+            ->name('dashboard.export-excel');
         Route::resource('products', AdminProductController::class)->except('show');
         Route::resource('products.variants', AdminProductVariantController::class)
             ->except(['index', 'show'])
@@ -99,6 +119,11 @@ Route::prefix('admin')
         Route::get('customers/{customer}', [AdminCustomerController::class, 'show'])->name('customers.show');
         Route::patch('customers/{customer}', [AdminCustomerController::class, 'update'])->name('customers.update');
         Route::resource('coupons', AdminCouponController::class)->except('show');
+        Route::post('coupons/{coupon}/send', [AdminCouponController::class, 'send'])
+            ->name('coupons.send');
         Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
         Route::put('reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
+        Route::get('permissions', [AdminPermissionController::class, 'index'])->name('permissions.index');
+        Route::post('permissions', [AdminPermissionController::class, 'update'])->name('permissions.update');
+        Route::resource('staff', AdminStaffController::class)->except('show');
     });

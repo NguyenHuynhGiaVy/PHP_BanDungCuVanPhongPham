@@ -60,6 +60,8 @@ class SaveProductRequest extends FormRequest
             ],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'boolean'],
+            'images' => ['nullable', 'array', 'max:10'],
+            'images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
             'image_url' => ['nullable', 'string', 'max:255'],
         ];
 

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -21,5 +23,33 @@ class OrderController extends Controller
         $order->load(['items', 'payments']);
 
         return view('orders.show', ['order' => $order]);
+    }
+
+    public function confirmReceived(Request $request, Order $order): RedirectResponse
+    {
+        abort_unless($order->user_id === $request->user()->id, 404);
+
+        if ($order->order_status !== 'SHIPPED') {
+            throw ValidationException::withMessages([
+                'order' => 'Chỉ có thể xác nhận đã nhận khi đơn hàng đang được giao.',
+            ]);
+        }
+
+        $updateData = ['order_status' => 'DELIVERED'];
+
+        if ($order->payment_method === 'COD') {
+            $updateData['payment_status'] = 'PAID';
+        }
+
+        $order->update($updateData);
+
+        if ($order->payment_method === 'COD') {
+            $order->payments()->latest('id')->first()?->update([
+                'status' => 'SUCCESS',
+                'paid_at' => now(),
+            ]);
+        }
+
+        return back()->with('status', 'Bạn đã xác nhận nhận hàng thành công.');
     }
 }

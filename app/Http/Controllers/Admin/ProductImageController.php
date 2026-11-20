@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Services\CloudinaryStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
 class ProductImageController extends Controller
 {
+    public function __construct(private readonly CloudinaryStorage $cloudinaryStorage) {}
+
     public function setPrimary(Product $product, ProductImage $image): RedirectResponse
     {
         DB::transaction(function () use ($product, $image): void {
@@ -25,6 +28,7 @@ class ProductImageController extends Controller
     {
         DB::transaction(function () use ($product, $image): void {
             $wasPrimary = $image->is_primary;
+            $this->cloudinaryStorage->delete($image->image_url);
             $image->delete();
 
             if ($wasPrimary) {

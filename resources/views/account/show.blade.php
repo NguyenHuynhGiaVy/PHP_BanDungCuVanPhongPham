@@ -1,30 +1,73 @@
 @extends('layouts.store')
 
-@section('title', 'Tài khoản của tôi | Stationery Store')
+@section('title', 'Tài khoản của tôi | Việt Thịnh')
 
 @section('content')
-    <div class="container py-4 py-lg-5">
-        <div class="store-section-heading">
-            <div>
-                <span class="store-section-kicker">Xin chào, {{ $user->full_name }}</span>
-                <h1 class="store-section-title">Tài khoản của tôi</h1>
-            </div>
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button class="btn btn-outline-secondary btn-sm" type="submit">Đăng xuất</button>
-            </form>
+    <div class="container py-4">
+        <!-- Breadcrumb -->
+        <nav class="store-breadcrumb" aria-label="Điều hướng đường dẫn">
+            <ol class="breadcrumb mb-3">
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tài khoản của tôi</li>
+            </ol>
+        </nav>
+
+        <div class="mb-4">
+            <h1 class="h4 fw-bold text-dark mb-1">Quản lý tài khoản</h1>
+            <p class="text-muted small mb-0">Cập nhật thông tin cá nhân, mật khẩu và xem lịch sử đơn hàng của bạn</p>
         </div>
 
         <div class="row g-4 align-items-start">
+            <!-- CỘT TRÁI: SIDEBAR TÀI KHOẢN -->
             <aside class="col-12 col-lg-3">
                 @include('account.partials.navigation')
             </aside>
 
+            <!-- CỘT PHẢI: NỘI DUNG TÀI KHOẢN -->
             <div class="col-12 col-lg-9">
-                <section class="store-panel mb-4">
-                    <h2 class="h5 fw-bold mb-3">Thông tin cá nhân</h2>
+                <section class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                        <i class="bi bi-bell fs-5 text-primary"></i>
+                        <h2 class="h5 fw-bold text-dark mb-0">Thông báo khuyến mãi</h2>
+                    </div>
+                    @if ($notifications->isNotEmpty())
+                        <div class="d-flex flex-column gap-2">
+                            @foreach ($notifications as $notification)
+                                <div class="d-flex align-items-start gap-3 p-3 rounded-3 {{ $notification->read_at ? 'bg-light' : 'bg-primary bg-opacity-10 border border-primary-subtle' }}">
+                                    <i class="bi bi-ticket-perforated-fill text-primary fs-5"></i>
+                                    <div class="flex-grow-1">
+                                        <strong class="d-block text-dark">{{ $notification->data['message'] ?? 'Bạn có thông báo mới.' }}</strong>
+                                        @if (! empty($notification->data['code']))
+                                            <code class="text-primary">{{ $notification->data['code'] }}</code>
+                                        @endif
+                                        <small class="d-block text-secondary mt-1">{{ $notification->created_at->format('d/m/Y H:i') }}</small>
+                                    </div>
+                                    @if (! empty($notification->data['url']))
+                                        <a class="btn btn-sm btn-outline-primary" href="{{ $notification->data['url'] }}">Dùng ngay</a>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                        @php
+                            $user->unreadNotifications()->update(['read_at' => now()]);
+                        @endphp
+                    @else
+                        <div class="text-center py-4 text-secondary">
+                            <i class="bi bi-bell-slash fs-2 d-block mb-2"></i>
+                            <strong class="d-block text-dark">Chưa có thông báo</strong>
+                            <small>Các mã khuyến mãi được gửi riêng sẽ hiển thị tại đây.</small>
+                        </div>
+                    @endif
+                </section>
+                <!-- 1. THÔNG TIN CÁ NHÂN -->
+                <section class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                        <i class="bi bi-person-lines-fill fs-5 text-primary"></i>
+                        <h2 class="h5 fw-bold text-dark mb-0">Thông tin cá nhân</h2>
+                    </div>
+
                     @if ($errors->any())
-                        <div class="alert alert-danger" role="alert">
+                        <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3" role="alert">
                             <ul class="mb-0 ps-3">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -32,12 +75,13 @@
                             </ul>
                         </div>
                     @endif
+
                     <form action="{{ route('account.update') }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold" for="account-name">Họ và tên</label>
+                                <label class="form-label small fw-semibold text-secondary" for="account-name">Họ và tên</label>
                                 <input
                                     class="form-control @error('full_name') is-invalid @enderror"
                                     id="account-name"
@@ -51,8 +95,9 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold" for="account-email">Email</label>
+                                <label class="form-label small fw-semibold text-secondary" for="account-email">Email đăng nhập</label>
                                 <input
                                     class="form-control @error('email') is-invalid @enderror"
                                     id="account-email"
@@ -67,8 +112,9 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold" for="account-phone">Số điện thoại</label>
+                                <label class="form-label small fw-semibold text-secondary" for="account-phone">Số điện thoại</label>
                                 <input
                                     class="form-control @error('phone') is-invalid @enderror"
                                     id="account-phone"
@@ -77,40 +123,49 @@
                                     value="{{ old('phone', $user->phone) }}"
                                     autocomplete="tel"
                                     maxlength="20"
+                                    placeholder="Chưa cập nhật số điện thoại"
                                 >
                                 @error('phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-12">
-                                <button class="btn btn-primary" type="submit">Lưu thay đổi</button>
+
+                            <div class="col-12 pt-2">
+                                <button class="btn btn-primary px-4 fw-semibold" type="submit">Lưu thay đổi</button>
                             </div>
                         </div>
                     </form>
                 </section>
 
-                <section class="store-panel mb-4" id="account-password">
-                    <h2 class="h5 fw-bold mb-3">Đổi mật khẩu</h2>
+                <!-- 2. ĐỔI MẬT KHẨU -->
+                <section class="card border-0 shadow-sm rounded-3 p-4 mb-4" id="account-password">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                        <i class="bi bi-shield-lock fs-5 text-primary"></i>
+                        <h2 class="h5 fw-bold text-dark mb-0">Đổi mật khẩu bảo mật</h2>
+                    </div>
+
                     <form action="{{ route('account.password.update') }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label fw-semibold" for="account-current-password">Mật khẩu hiện tại</label>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold text-secondary" for="account-current-password">Mật khẩu hiện tại</label>
                                 <input
                                     class="form-control @error('current_password') is-invalid @enderror"
                                     id="account-current-password"
                                     name="current_password"
                                     type="password"
                                     autocomplete="current-password"
+                                    placeholder="••••••••"
                                     required
                                 >
                                 @error('current_password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold" for="account-new-password">Mật khẩu mới</label>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold text-secondary" for="account-new-password">Mật khẩu mới</label>
                                 <input
                                     class="form-control @error('password') is-invalid @enderror"
                                     id="account-new-password"
@@ -118,14 +173,16 @@
                                     type="password"
                                     autocomplete="new-password"
                                     minlength="8"
+                                    placeholder="Tối thiểu 8 ký tự"
                                     required
                                 >
                                 @error('password')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold" for="account-password-confirmation">Xác nhận mật khẩu mới</label>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label small fw-semibold text-secondary" for="account-password-confirmation">Xác nhận mật khẩu</label>
                                 <input
                                     class="form-control"
                                     id="account-password-confirmation"
@@ -133,135 +190,53 @@
                                     type="password"
                                     autocomplete="new-password"
                                     minlength="8"
+                                    placeholder="Nhập lại mật khẩu mới"
                                     required
                                 >
                             </div>
-                            <div class="col-12">
-                                <button class="btn btn-outline-primary" type="submit">Cập nhật mật khẩu</button>
+
+                            <div class="col-12 pt-2">
+                                <button class="btn btn-outline-primary px-4 fw-semibold" type="submit">Cập nhật mật khẩu</button>
                             </div>
                         </div>
                     </form>
                 </section>
 
-                <section class="store-panel mb-4">
-                    <div class="store-section-heading mb-3">
-                        <h2 class="h5 fw-bold mb-0">Đơn hàng gần đây</h2>
-                        <a href="{{ route('orders.index') }}">Xem tất cả</a>
-                    </div>
-                    @forelse ($recentOrders as $order)
-                        <a class="store-account-order" href="{{ route('orders.show', $order) }}">
-                            <span>
-                                <strong>{{ $order->order_code }}</strong>
-                                <small>{{ $order->created_at->format('d/m/Y H:i') }}</small>
-                            </span>
-                            <span class="text-end">
-                                <strong>{{ number_format((float) $order->total_amount, 0, ',', '.') }} ₫</strong>
-                                <small>{{ $order->order_status }}</small>
-                            </span>
+                <!-- 3. ĐƠN HÀNG GẦN ĐÂY -->
+                <section class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-box-seam fs-5 text-primary"></i>
+                            <h2 class="h5 fw-bold text-dark mb-0">Đơn hàng gần đây</h2>
+                        </div>
+                        <a href="{{ route('orders.index') }}" class="small text-primary text-decoration-none fw-semibold">
+                            Xem tất cả <i class="bi bi-chevron-right"></i>
                         </a>
+                    </div>
+
+                    @forelse ($recentOrders as $order)
+                        <div class="d-flex justify-content-between align-items-center p-3 rounded-2 bg-light border mb-2 transition hover-shadow">
+                            <div>
+                                <a href="{{ route('orders.show', $order) }}" class="fw-bold text-dark text-decoration-none">
+                                    #{{ $order->order_code }}
+                                </a>
+                                <small class="text-muted d-block" style="font-size: 0.78rem;">
+                                    Ngày đặt: {{ $order->created_at->format('d/m/Y H:i') }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-danger d-block">{{ number_format((float) $order->total_amount, 0, ',', '.') }} ₫</strong>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style="font-size: 0.7rem;">
+                                    {{ $order->order_status }}
+                                </span>
+                            </div>
+                        </div>
                     @empty
-                        <p class="text-secondary mb-0">Bạn chưa có đơn hàng nào.</p>
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-1 text-secondary"></i>
+                            <p class="mb-0 small">Bạn chưa có đơn hàng nào.</p>
+                        </div>
                     @endforelse
-                </section>
-
-                <section class="store-panel" id="address-book">
-                    <div class="store-section-heading mb-3">
-                        <div>
-                            <h2 class="h5 fw-bold mb-0">Sổ địa chỉ</h2>
-                            <span class="small text-secondary">Quản lý địa chỉ giao hàng của bạn</span>
-                        </div>
-                    </div>
-
-                    @if ($addresses->isNotEmpty())
-                        <div class="store-address-list mb-4">
-                            @foreach ($addresses as $address)
-                                <article class="store-address-card">
-                                    <div class="store-address-heading">
-                                        <span class="store-address-icon">
-                                            <i class="bi bi-geo-alt" aria-hidden="true"></i>
-                                        </span>
-                                        <div>
-                                            <strong>{{ $address->receiver_name }}</strong>
-                                            @if ($address->is_default)
-                                                <span class="badge text-bg-primary ms-1">Mặc định</span>
-                                            @endif
-                                            <p class="mb-0">{{ $address->phone }}</p>
-                                        </div>
-                                    </div>
-                                    <p class="store-address-item mb-3">
-                                        {{ $address->detail_address }}, {{ $address->ward }}, {{ $address->district }}, {{ $address->province }}
-                                    </p>
-                                    <div class="store-address-actions">
-                                        <button
-                                            class="btn btn-outline-primary btn-sm"
-                                            type="button"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target="#edit-address-{{ $address->id }}"
-                                            aria-expanded="{{ (int) old('address_id') === $address->id ? 'true' : 'false' }}"
-                                            aria-controls="edit-address-{{ $address->id }}"
-                                        >
-                                            <i class="bi bi-pencil me-1" aria-hidden="true"></i>Sửa
-                                        </button>
-                                        @unless ($address->is_default)
-                                            <form action="{{ route('account.addresses.default', $address) }}" method="POST">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button class="btn btn-outline-secondary btn-sm" type="submit">Đặt mặc định</button>
-                                            </form>
-                                        @endunless
-                                        <form action="{{ route('account.addresses.destroy', $address) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="btn btn-link btn-sm text-danger" type="submit">Xóa</button>
-                                        </form>
-                                    </div>
-
-                                    <div
-                                        class="collapse {{ (int) old('address_id') === $address->id ? 'show' : '' }} mt-3"
-                                        id="edit-address-{{ $address->id }}"
-                                    >
-                                        <form
-                                            action="{{ route('account.addresses.update', $address) }}"
-                                            method="POST"
-                                            class="store-address-form"
-                                        >
-                                            @csrf
-                                            @method('PUT')
-                                            <input type="hidden" name="address_id" value="{{ $address->id }}">
-                                            @include('account.partials.address-fields', [
-                                                'formId' => 'edit-address-'.$address->id,
-                                                'address' => $address,
-                                                'showDefault' => ! $address->is_default,
-                                            ])
-                                            <button class="btn btn-primary btn-sm" type="submit">Lưu địa chỉ</button>
-                                        </form>
-                                    </div>
-                                </article>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="store-empty-state store-empty-state-compact mb-4">
-                            <i class="bi bi-geo-alt" aria-hidden="true"></i>
-                            <h3>Chưa có địa chỉ giao hàng</h3>
-                            <p class="mb-0">Thêm địa chỉ để thuận tiện hơn khi đặt hàng.</p>
-                        </div>
-                    @endif
-
-                    <div class="store-address-add">
-                        <h3 class="h6 fw-bold mb-3">Thêm địa chỉ mới</h3>
-                        <form action="{{ route('account.addresses.store') }}" method="POST" class="store-address-form">
-                            @csrf
-                            <input type="hidden" name="address_id" value="">
-                            @include('account.partials.address-fields', [
-                                'formId' => 'new-address',
-                                'address' => null,
-                                'showDefault' => $addresses->isNotEmpty(),
-                            ])
-                            <button class="btn btn-primary" type="submit">
-                                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Thêm địa chỉ
-                            </button>
-                        </form>
-                    </div>
                 </section>
             </div>
         </div>

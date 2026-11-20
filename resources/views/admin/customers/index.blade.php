@@ -16,7 +16,7 @@
                     <option value="1" @selected(request('status') === '1')>Đang hoạt động</option>
                     <option value="0" @selected(request('status') === '0')>Đã khóa</option>
                 </select>
-                <button class="btn btn-outline-primary btn-sm" type="submit">Lọc</button>
+                <button class="btn btn-outline-primary btn-sm admin-icon-button" type="submit" title="Lọc dữ liệu" aria-label="Lọc dữ liệu"><i class="bi bi-funnel"></i></button>
             </form>
         </div>
         <div class="table-responsive">
@@ -29,7 +29,7 @@
                             <td>{{ $customer->phone ?: '—' }}</td>
                             <td>{{ $customer->orders_count }}</td>
                             <td><span class="badge {{ $customer->status ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $customer->status ? 'Đang hoạt động' : 'Đã khóa' }}</span></td>
-                            <td class="text-end"><a class="btn btn-outline-primary btn-sm" href="{{ route('admin.customers.show', $customer) }}">Chi tiết</a></td>
+                            <td class="text-center"><a class="btn btn-outline-primary btn-sm admin-icon-button" href="{{ route('admin.customers.show', $customer) }}" title="Xem chi tiết khách hàng" aria-label="Xem chi tiết khách hàng"><i class="bi bi-eye"></i></a></td>
                         </tr>
                     @empty
                         <tr><td colspan="5"><div class="admin-empty-note">Chưa có khách hàng phù hợp.</div></td></tr>

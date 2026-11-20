@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Review;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
@@ -70,6 +72,21 @@ class ProductController extends Controller
         return view('products.show', [
             'product' => $product,
             'relatedProducts' => $relatedProducts,
+            'userWishlistId' => auth()->check()
+                ? $product->wishlists()->where('user_id', auth()->id())->value('id')
+                : null,
+            'userReview' => auth()->check()
+                ? Review::where('user_id', auth()->id())->where('product_id', $product->id)->first()
+                : null,
+            'eligibleReviewOrderItemId' => auth()->check()
+                ? OrderItem::query()
+                    ->whereHas('order', static fn (Builder $query): Builder => $query
+                        ->where('user_id', auth()->id())
+                        ->where('order_status', 'DELIVERED'))
+                    ->whereHas('variant', static fn (Builder $query): Builder => $query->where('product_id', $product->id))
+                    ->whereDoesntHave('review')
+                    ->value('order_items.id')
+                : null,
         ]);
     }
 

@@ -66,9 +66,15 @@ class OrderController extends Controller
     private function nextStatuses(Order $order): array
     {
         return match ($order->order_status) {
-            'PENDING' => $order->payment_status === 'PAID' ? ['PROCESSING'] : [],
-            'PROCESSING' => $order->payment_status === 'PAID' ? ['SHIPPED'] : [],
-            'SHIPPED' => ['DELIVERED'],
+            'PENDING' => $order->payment_status === 'PAID'
+                || $order->payment_method === 'COD'
+                ? ['PROCESSING']
+                : [],
+            'PROCESSING' => $order->payment_status === 'PAID'
+                || $order->payment_method === 'COD'
+                ? ['SHIPPED']
+                : [],
+            'SHIPPED' => [],
             default => [],
         };
     }

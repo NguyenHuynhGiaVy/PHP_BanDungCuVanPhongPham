@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -61,5 +61,19 @@ class User extends Authenticatable
     public function wishlists()
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    public function hasPermission(string $code): bool
+    {
+        if ($this->role?->name === 'ADMIN') {
+            return true;
+        }
+
+        return (bool) $this->role?->hasPermission($code);
+    }
+
+    public function isStaffOrAdmin(): bool
+    {
+        return in_array($this->role?->name, ['ADMIN', 'STAFF'], true);
     }
 }

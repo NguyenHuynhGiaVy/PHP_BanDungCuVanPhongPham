@@ -11,6 +11,16 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
+            'Bút viết',
+            'Vở và sổ',
+            'Giấy in',
+            'Dụng cụ học tập',
+            'Dụng cụ văn phòng',
+            'File và bìa hồ sơ',
+            'Thiết bị văn phòng',
+            'Dụng cụ mỹ thuật',
+            'Keo và băng dính',
+            'Phụ kiện bàn làm việc',
             'Bìa hồ sơ',
             'Bút ký',
             'Bút bi',
@@ -38,8 +48,8 @@ class CategorySeeder extends Seeder
                 'parent_id' => null,
                 'name' => $category,
                 'slug' => Str::slug($category),
-                'description' => 'Danh muc ' . $category
-                    . ' tai Stationery Store',
+                'description' => 'Danh mục '.$category
+                    .' tai Stationery Store',
                 'status' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,

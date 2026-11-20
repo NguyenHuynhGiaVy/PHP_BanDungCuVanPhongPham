@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Review extends Model
 {
@@ -16,6 +16,9 @@ class Review extends Model
         'rating',
         'comment',
         'status',
+        'admin_reply',
+        'replied_by',
+        'replied_at',
     ];
 
     protected function casts(): array
@@ -23,6 +26,7 @@ class Review extends Model
         return [
             'rating' => 'integer',
             'status' => 'integer',
+            'replied_at' => 'datetime',
         ];
     }
 
@@ -39,5 +43,10 @@ class Review extends Model
     public function orderItem()
     {
         return $this->belongsTo(OrderItem::class);
+    }
+
+    public function repliedBy()
+    {
+        return $this->belongsTo(User::class, 'replied_by');
     }
 }

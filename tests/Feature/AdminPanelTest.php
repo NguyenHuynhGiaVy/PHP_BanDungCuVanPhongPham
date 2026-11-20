@@ -449,6 +449,20 @@ class AdminPanelTest extends TestCase
             ->assertViewHas('statistics', fn (array $statistics): bool => (float) $statistics['revenue'] === 15000.0);
     }
 
+    public function test_admin_dashboard_can_export_orders_as_excel(): void
+    {
+        $admin = $this->createAdmin();
+        $customer = $this->createCustomer();
+        $this->createOrder($customer->id, 'PROCESSING', 'PAID', 'EXPORT-ORDER');
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard.export-excel'));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/vnd.ms-excel; charset=UTF-8');
+        $response->assertSee('EXPORT-ORDER');
+        $response->assertSee('BÁO CÁO THỐNG KÊ ĐƠN HÀNG');
+    }
+
     public function test_order_status_can_only_advance_without_changing_payment_state(): void
     {
         $admin = $this->createAdmin();

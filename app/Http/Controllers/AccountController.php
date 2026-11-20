@@ -18,6 +18,7 @@ class AccountController extends Controller
             'user' => $user,
             'recentOrders' => $user->orders()->latest()->limit(5)->get(),
             'addresses' => $user->addresses()->latest()->get(),
+            'notifications' => $user->notifications()->latest()->limit(10)->get(),
         ]);
     }
 

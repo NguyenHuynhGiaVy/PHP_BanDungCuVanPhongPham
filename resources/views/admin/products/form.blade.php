@@ -36,10 +36,10 @@
 @section('content')
     <div class="admin-page-heading">
         <div><span class="admin-eyebrow">DANH MỤC & SẢN PHẨM</span><h1>{{ $isEditing ? 'Sửa sản phẩm' : 'Thêm sản phẩm' }}</h1><p>Thông tin cơ bản và các biến thể của sản phẩm.</p></div>
-        <a class="btn btn-outline-secondary" href="{{ route('admin.products.index') }}">Quay lại</a>
+        <a class="btn btn-outline-secondary admin-icon-button" href="{{ route('admin.products.index') }}" title="Quay lại danh sách" aria-label="Quay lại danh sách"><i class="bi bi-arrow-left"></i></a>
     </div>
     <section class="admin-panel admin-form-panel">
-        <form id="product-form" action="{{ $isEditing ? route('admin.products.update', $product) : route('admin.products.store') }}" method="POST">
+        <form id="product-form" action="{{ $isEditing ? route('admin.products.update', $product) : route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @if ($isEditing) @method('PUT') @endif
             <div class="admin-form-section">
@@ -163,7 +163,7 @@
                     <div class="admin-image-strip mb-3">
                         @foreach ($product->images as $image)
                             <div>
-                                <img src="{{ asset($image->image_url) }}" alt="" loading="lazy">
+                                <img src="{{ str_starts_with($image->image_url, 'http') ? $image->image_url : asset($image->image_url) }}" alt="" loading="lazy">
                                 <small>{{ $image->is_primary ? 'Ảnh chính' : 'Ảnh phụ' }}</small>
                                 <div class="admin-image-actions">
                                     @unless ($image->is_primary)
@@ -175,10 +175,18 @@
                         @endforeach
                     </div>
                 @endif
-                <label class="form-label" for="product-image-url">{{ $isEditing ? 'Thêm ảnh mới' : 'Đường dẫn ảnh' }} (không bắt buộc)</label>
-                <input class="form-control @error('image_url') is-invalid @enderror" id="product-image-url" name="image_url" value="{{ old('image_url') }}" maxlength="255">
-                @error('image_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <div class="form-text">Nhập đường dẫn ảnh trong thư mục public. Không tải ảnh lên máy chủ.</div>
+                <label class="form-label" for="product-images">Hình ảnh sản phẩm</label>
+                <input
+                    class="form-control @error('images') is-invalid @enderror @error('images.*') is-invalid @enderror"
+                    id="product-images"
+                    name="images[]"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    multiple
+                >
+                @error('images')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                @error('images.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="form-text">Có thể chọn nhiều ảnh; ảnh đầu tiên sẽ trở thành ảnh chính nếu sản phẩm chưa có ảnh.</div>
             </div>
 
             @if ($isEditing)
@@ -199,8 +207,8 @@
                                         <td><span class="badge {{ $variant->status ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $variant->status ? 'Đang bán' : 'Đã ẩn' }}</span></td>
                                         <td>
                                             <div class="admin-row-actions">
-                                                <a class="btn btn-outline-primary btn-sm" href="{{ route('admin.products.variants.edit', [$product, $variant]) }}">Sửa</a>
-                                                <button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#admin-confirm-modal" data-admin-form="delete-variant-{{ $variant->id }}" data-admin-message="Xóa hoặc ẩn biến thể {{ $variant->sku }}? Nếu có lịch sử, biến thể sẽ được ẩn.">Xóa / ẩn</button>
+                                                <a class="btn btn-outline-primary btn-sm admin-icon-button" href="{{ route('admin.products.variants.edit', [$product, $variant]) }}" title="Sửa biến thể" aria-label="Sửa biến thể"><i class="bi bi-pencil-square"></i></a>
+                                                <button class="btn btn-outline-danger btn-sm admin-icon-button" type="button" data-bs-toggle="modal" data-bs-target="#admin-confirm-modal" data-admin-form="delete-variant-{{ $variant->id }}" data-admin-message="Xóa hoặc ẩn biến thể {{ $variant->sku }}? Nếu có lịch sử, biến thể sẽ được ẩn." title="Xóa hoặc ẩn biến thể" aria-label="Xóa hoặc ẩn biến thể"><i class="bi bi-trash3"></i></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -214,9 +222,10 @@
                 </div>
             @endif
 
-            <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-primary" type="submit" form="product-form">{{ $isEditing ? 'Lưu thay đổi' : 'Tạo sản phẩm' }}</button>
-                <a class="btn btn-outline-secondary" href="{{ route('admin.products.index') }}">Hủy</a>
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                <button class="btn btn-primary admin-save-button" type="submit" form="product-form">
+                    <i class="bi bi-check2-circle me-1"></i>{{ $isEditing ? 'Lưu thay đổi' : 'Tạo sản phẩm' }}
+                </button>
             </div>
         </form>
         @if ($isEditing)

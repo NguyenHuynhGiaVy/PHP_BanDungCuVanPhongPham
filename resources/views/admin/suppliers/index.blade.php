@@ -14,28 +14,26 @@
             <form method="GET" class="admin-search-form">
                 <label class="visually-hidden" for="supplier-search">Tìm nhà cung cấp</label>
                 <input class="form-control form-control-sm" id="supplier-search" name="q" value="{{ request('q') }}" placeholder="Tên hoặc email">
-                <button class="btn btn-outline-primary btn-sm" type="submit">Tìm</button>
+                <button class="btn btn-outline-primary btn-sm admin-icon-button" type="submit" title="Tìm kiếm" aria-label="Tìm kiếm"><i class="bi bi-search"></i></button>
             </form>
         </div>
         <div class="table-responsive">
             <table class="table admin-table align-middle mb-0">
-                <thead><tr><th>Nhà cung cấp</th><th>Email / Điện thoại</th><th>Sản phẩm liên kết</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+                <thead><tr><th>Nhà cung cấp</th><th>Email / Điện thoại</th><th>Sản phẩm liên kết</th><th>Trạng thái</th><th class="text-center">Thao tác</th></tr></thead>
                 <tbody>
                     @forelse ($suppliers as $supplier)
                         <tr>
-                            <td><strong>{{ $supplier->name }}</strong><small class="d-block text-secondary">{{ $supplier->address ?: 'Chưa có địa chỉ' }}</small></td>
+                            <td><strong>{{ $supplier->name }}</strong></td>
                             <td>{{ $supplier->email ?: '—' }}<small class="d-block text-secondary">{{ $supplier->phone ?: '—' }}</small></td>
                             <td>{{ $supplier->supplier_products_count }}</td>
                             <td><span class="badge {{ $supplier->status ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $supplier->status ? 'Đang hoạt động' : 'Đã ẩn' }}</span></td>
-                            <td class="text-end"><div class="admin-row-actions">
-                                <a class="btn btn-outline-primary btn-sm" href="{{ route('admin.suppliers.edit', $supplier) }}">Sửa</a>
+                            <td class="text-center"><div class="admin-row-actions justify-content-center">
+                                <a class="btn btn-outline-primary btn-sm admin-icon-button" href="{{ route('admin.suppliers.edit', $supplier) }}" title="Sửa nhà cung cấp" aria-label="Sửa nhà cung cấp"><i class="bi bi-pencil-square"></i></a>
                                 @if ($supplier->supplier_products_count === 0 && $supplier->inventory_transactions_count === 0)
                                     <form id="delete-supplier-{{ $supplier->id }}" action="{{ route('admin.suppliers.destroy', $supplier) }}" method="POST">
                                         @csrf @method('DELETE')
-                                        <button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#admin-confirm-modal" data-admin-confirm data-admin-form="delete-supplier-{{ $supplier->id }}" data-admin-message="Xóa nhà cung cấp {{ $supplier->name }}?">Xóa</button>
+                                        <button class="btn btn-outline-danger btn-sm admin-icon-button" type="button" data-bs-toggle="modal" data-bs-target="#admin-confirm-modal" data-admin-confirm data-admin-form="delete-supplier-{{ $supplier->id }}" data-admin-message="Xóa nhà cung cấp {{ $supplier->name }}?" title="Xóa nhà cung cấp" aria-label="Xóa nhà cung cấp"><i class="bi bi-trash3"></i></button>
                                     </form>
-                                @else
-                                    <span class="small text-secondary">Ẩn để lưu lịch sử</span>
                                 @endif
                             </div></td>
                         </tr>

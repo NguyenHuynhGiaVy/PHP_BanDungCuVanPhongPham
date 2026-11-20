@@ -28,7 +28,7 @@ class SaveBrandRequest extends FormRequest
                 'max:180',
                 Rule::unique('brands', 'slug')->ignore($brand instanceof Brand ? $brand->id : null),
             ],
-            'logo' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:2048'],
             'status' => ['required', 'boolean'],
         ];
     }

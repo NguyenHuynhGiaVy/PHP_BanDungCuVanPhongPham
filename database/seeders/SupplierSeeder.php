@@ -11,10 +11,10 @@ class SupplierSeeder extends Seeder
     {
         $suppliers = [
             [
-                'name' => 'Cong ty Van phong pham Thien Long',
+                'name' => 'Công ty Văn phòng phẩm Thiên Long',
                 'email' => 'supplier1@example.com',
                 'phone' => '02838000001',
-                'address' => 'TP Ho Chi Minh',
+                'address' => 'TP. Hồ Chí Minh',
             ],
             [
                 'name' => 'Deli Vietnam',

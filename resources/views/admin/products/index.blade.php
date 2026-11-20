@@ -13,36 +13,45 @@
             <div><h2>Danh sách sản phẩm</h2><p>{{ $products->total() }} sản phẩm</p></div>
             <form method="GET" class="admin-search-form">
                 <label class="visually-hidden" for="product-search">Tìm sản phẩm</label>
-                <input class="form-control form-control-sm" id="product-search" name="q" value="{{ request('q') }}" placeholder="Tên hoặc slug">
+                <input class="form-control form-control-sm" id="product-search" name="q" value="{{ request('q') }}" placeholder="Tên sản phẩm">
                 <select class="form-select form-select-sm" name="status" aria-label="Lọc trạng thái">
                     <option value="">Mọi trạng thái</option>
                     <option value="1" @selected(request('status') === '1')>Đang hoạt động</option>
                     <option value="0" @selected(request('status') === '0')>Đã ẩn</option>
                 </select>
-                <button class="btn btn-outline-primary btn-sm" type="submit">Lọc</button>
+                <button class="btn btn-outline-primary btn-sm admin-icon-button" type="submit" title="Tìm kiếm" aria-label="Tìm kiếm"><i class="bi bi-search"></i></button>
             </form>
         </div>
         <div class="table-responsive">
             <table class="table admin-table align-middle mb-0">
-                <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Thương hiệu</th><th>Biến thể</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+                <thead><tr><th>Hình ảnh</th><th>Sản phẩm</th><th>Danh mục</th><th>Thương hiệu</th><th>Trạng thái</th><th class="text-center">Thao tác</th></tr></thead>
                 <tbody>
                     @forelse ($products as $product)
                         <tr>
-                            <td><strong>{{ $product->name }}</strong><small class="d-block text-secondary">{{ $product->slug }}</small></td>
+                            @php
+                                $primaryImage = $product->images->sortByDesc('is_primary')->first();
+                            @endphp
+                            <td>
+                                <div class="admin-product-thumbnail">
+                                    @if ($primaryImage)
+                                        <img src="{{ str_starts_with($primaryImage->image_url, 'http') ? $primaryImage->image_url : asset($primaryImage->image_url) }}" alt="{{ $product->name }}" loading="lazy">
+                                    @else
+                                        <i class="bi bi-image" aria-hidden="true"></i>
+                                    @endif
+                                </div>
+                            </td>
+                            <td><strong>{{ $product->name }}</strong></td>
                             <td>{{ $product->category->name }}</td>
                             <td>{{ $product->brand?->name ?? '—' }}</td>
-                            <td>{{ $product->variants_count }}</td>
                             <td><span class="badge {{ $product->status ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $product->status ? 'Đang bán' : 'Đã ẩn' }}</span></td>
-                            <td class="text-end">
-                                <div class="admin-row-actions">
-                                    <a class="btn btn-outline-primary btn-sm" href="{{ route('admin.products.edit', $product) }}">Sửa</a>
+                            <td class="text-center">
+                                <div class="admin-row-actions justify-content-center">
+                                    <a class="btn btn-outline-primary btn-sm admin-icon-button" href="{{ route('admin.products.edit', $product) }}" title="Sửa sản phẩm" aria-label="Sửa sản phẩm"><i class="bi bi-pencil-square"></i></a>
                                     @if ($product->variants_count === 0 && $product->reviews_count === 0 && $product->wishlists_count === 0)
                                         <form id="delete-product-{{ $product->id }}" action="{{ route('admin.products.destroy', $product) }}" method="POST">
                                             @csrf @method('DELETE')
-                                            <button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#admin-confirm-modal" data-admin-form="delete-product-{{ $product->id }}" data-admin-message="Xóa sản phẩm {{ $product->name }}?">Xóa</button>
+                                            <button class="btn btn-outline-danger btn-sm admin-icon-button" type="button" data-bs-toggle="modal" data-bs-target="#admin-confirm-modal" data-admin-form="delete-product-{{ $product->id }}" data-admin-message="Xóa sản phẩm {{ $product->name }}?" title="Xóa sản phẩm" aria-label="Xóa sản phẩm"><i class="bi bi-trash3"></i></button>
                                         </form>
-                                    @else
-                                        <span class="small text-secondary">Ẩn để lưu lịch sử</span>
                                     @endif
                                 </div>
                             </td>

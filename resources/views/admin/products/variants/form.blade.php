@@ -18,7 +18,7 @@
 @section('content')
     <div class="admin-page-heading">
         <div><span class="admin-eyebrow">BIẾN THỂ SẢN PHẨM</span><h1>{{ $isEditing ? 'Sửa biến thể' : 'Thêm biến thể' }}</h1><p>{{ $product->name }}</p></div>
-        <a class="btn btn-outline-secondary" href="{{ route('admin.products.edit', $product) }}">Quay lại sản phẩm</a>
+        <a class="btn btn-outline-secondary admin-icon-button" href="{{ route('admin.products.edit', $product) }}" title="Quay lại sản phẩm" aria-label="Quay lại sản phẩm"><i class="bi bi-arrow-left"></i></a>
     </div>
     <section class="admin-panel admin-form-panel">
         <form action="{{ $isEditing ? route('admin.products.variants.update', [$product, $variant]) : route('admin.products.variants.store', $product) }}" method="POST">
@@ -61,9 +61,10 @@
                 @if (! $isEditing)
                     <div class="col-12"><p class="form-text mb-0">Biến thể mới bắt đầu với tồn kho 0. Nhập kho ở mục Tồn kho để ghi nhận lịch sử đầy đủ.</p></div>
                 @endif
-                <div class="col-12 d-flex gap-2">
-                    <button class="btn btn-primary" type="submit">{{ $isEditing ? 'Lưu biến thể' : 'Tạo biến thể' }}</button>
-                    <a class="btn btn-outline-secondary" href="{{ route('admin.products.edit', $product) }}">Hủy</a>
+                <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
+                    <button class="btn btn-primary admin-save-button" type="submit">
+                        <i class="bi bi-check2-circle me-1"></i>{{ $isEditing ? 'Lưu biến thể' : 'Tạo biến thể' }}
+                    </button>
                 </div>
             </div>
         </form>

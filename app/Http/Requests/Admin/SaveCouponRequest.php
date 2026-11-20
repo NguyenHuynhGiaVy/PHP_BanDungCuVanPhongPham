@@ -47,6 +47,9 @@ class SaveCouponRequest extends FormRequest
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after:start_date'],
             'status' => ['required', 'boolean'],
+            'audience' => ['required', Rule::in(['public', 'private'])],
+            'recipient_ids' => ['sometimes', 'array'],
+            'recipient_ids.*' => ['integer', Rule::exists('users', 'id')],
         ];
     }
 
@@ -54,6 +57,10 @@ class SaveCouponRequest extends FormRequest
     {
         if ($this->has('code')) {
             $this->merge(['code' => Str::upper(trim((string) $this->input('code')))]);
+        }
+
+        if (! $this->has('audience')) {
+            $this->merge(['audience' => 'public']);
         }
     }
 }

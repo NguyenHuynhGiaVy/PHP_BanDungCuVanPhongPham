@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
         DB::table('users')->insert([
             [
                 'role_id' => $adminRole,
-                'full_name' => 'Administrator',
+                'full_name' => 'Quản trị viên',
                 'email' => 'admin@stationery.com',
                 'password' => Hash::make('Admin@123'),
                 'phone' => '0900000001',
@@ -34,7 +34,7 @@ class UserSeeder extends Seeder
             ],
             [
                 'role_id' => $customerRole,
-                'full_name' => 'Nguyen Van An',
+                'full_name' => 'Nguyễn Văn An',
                 'email' => 'customer1@gmail.com',
                 'password' => Hash::make('Customer@123'),
                 'phone' => '0900000002',
@@ -45,7 +45,7 @@ class UserSeeder extends Seeder
             ],
             [
                 'role_id' => $customerRole,
-                'full_name' => 'Tran Thi Binh',
+                'full_name' => 'Trần Thị Bình',
                 'email' => 'customer2@gmail.com',
                 'password' => Hash::make('Customer@123'),
                 'phone' => '0900000003',

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Coupon extends Model
 {
@@ -20,6 +20,7 @@ class Coupon extends Model
         'start_date',
         'end_date',
         'status',
+        'audience',
     ];
 
     protected function casts(): array
@@ -39,5 +40,12 @@ class Coupon extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'coupon_user')
+            ->withPivot(['assigned_at', 'used_at'])
+            ->withTimestamps();
     }
 }

@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'vnpay' => [
+        'tmn_code' => env('VNPAY_TMN_CODE', '9Q4FIFFF'),
+        'hash_secret' => env('VNPAY_HASH_SECRET', 'U3H8IWEOPB9JEE38PX4IVPW5AI6ARCNA'),
+        'url' => env('VNPAY_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'),
+        'return_url' => env('VNPAY_RETURN_URL'),
+    ],
+
+    'cloudinary' => [
+        'url' => env('CLOUDINARY_URL'),
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+        'api_key' => env('CLOUDINARY_API_KEY'),
+        'api_secret' => env('CLOUDINARY_API_SECRET'),
+        'folder' => env('CLOUDINARY_FOLDER', 'viet-thinh'),
+    ],
+
 ];

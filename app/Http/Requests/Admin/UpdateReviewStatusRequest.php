@@ -19,6 +19,7 @@ class UpdateReviewStatusRequest extends FormRequest
     {
         return [
             'status' => ['required', Rule::in([0, 1, 2])],
+            'admin_reply' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

@@ -6,7 +6,7 @@
 @section('content')
     <div class="admin-page-heading">
         <div><span class="admin-eyebrow">ĐƠN {{ $order->order_code }}</span><h1>Chi tiết đơn hàng</h1><p>Tạo lúc {{ $order->created_at->format('d/m/Y H:i') }}</p></div>
-        <a class="btn btn-outline-secondary" href="{{ route('admin.orders.index') }}">Quay lại danh sách</a>
+        <a class="btn btn-outline-secondary admin-icon-button" href="{{ route('admin.orders.index') }}" title="Quay lại danh sách" aria-label="Quay lại danh sách"><i class="bi bi-arrow-left"></i></a>
     </div>
     <div class="row g-4">
         <div class="col-12 col-xl-8">

@@ -6,7 +6,7 @@
 @section('content')
     <div class="admin-page-heading">
         <div><span class="admin-eyebrow">TÀI KHOẢN KHÁCH HÀNG</span><h1>{{ $customer->full_name }}</h1><p>{{ $customer->email }}</p></div>
-        <a class="btn btn-outline-secondary" href="{{ route('admin.customers.index') }}">Quay lại danh sách</a>
+        <a class="btn btn-outline-secondary admin-icon-button" href="{{ route('admin.customers.index') }}" title="Quay lại danh sách" aria-label="Quay lại danh sách"><i class="bi bi-arrow-left"></i></a>
     </div>
     <div class="row g-4">
         <div class="col-12 col-xl-4">

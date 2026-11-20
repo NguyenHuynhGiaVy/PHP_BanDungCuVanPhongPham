@@ -13,7 +13,7 @@
             <form method="GET" class="admin-search-form">
                 <label class="visually-hidden" for="inventory-search">Tìm SKU hoặc sản phẩm</label>
                 <input class="form-control form-control-sm" id="inventory-search" name="q" value="{{ request('q') }}" placeholder="SKU hoặc tên sản phẩm">
-                <button class="btn btn-outline-primary btn-sm" type="submit">Tìm</button>
+                <button class="btn btn-outline-primary btn-sm admin-icon-button" type="submit" title="Tìm kiếm" aria-label="Tìm kiếm"><i class="bi bi-search"></i></button>
             </form>
         </div>
         <div class="table-responsive">
@@ -33,15 +33,17 @@
                                         <option value="IMPORT">Nhập kho</option>
                                         <option value="EXPORT">Xuất kho</option>
                                     </select>
-                                    <input class="form-control form-control-sm" name="quantity" type="number" min="1" max="4294967295" placeholder="SL" aria-label="Số lượng" required>
+                                    <input class="form-control form-control-sm" name="quantity" type="number" min="1" max="4294967295" placeholder="Số lượng" aria-label="Số lượng" required>
                                     <select class="form-select form-select-sm" name="supplier_id" aria-label="Nhà cung cấp (khi nhập)">
-                                        <option value="">Không chọn NCC</option>
+                                        <option value="">Không chọn nhà cung cấp</option>
                                         @foreach ($suppliers as $supplier)
                                             <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                                         @endforeach
                                     </select>
                                     <input class="form-control form-control-sm" name="note" maxlength="2000" placeholder="Ghi chú (không bắt buộc)" aria-label="Ghi chú">
-                                    <button class="btn btn-primary btn-sm" type="submit">Ghi nhận</button>
+                                    <button class="btn btn-primary btn-sm" type="submit" title="Ghi nhận điều chỉnh">
+                                        <i class="bi bi-check2-circle me-1"></i>Ghi nhận
+                                    </button>
                                 </form>
                                 @error('quantity')<small class="d-block text-danger mt-1">{{ $message }}</small>@enderror
                             </td>

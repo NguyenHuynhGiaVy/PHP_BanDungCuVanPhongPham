@@ -1,10 +1,6 @@
 <div class="admin-sidebar-content">
     <a class="admin-brand" href="{{ route('admin.dashboard') }}">
-        <span class="admin-brand-icon"><i class="bi bi-pencil-square" aria-hidden="true"></i></span>
-        <span>
-            <strong>Stationery</strong>
-            <small>QUẢN TRỊ CỬA HÀNG</small>
-        </span>
+        <img src="{{ asset('images/logo.png') }}" alt="Việt Thịnh" class="admin-brand-logo">
     </a>
     <span class="admin-nav-label">TỔNG QUAN</span>
     <nav class="admin-nav" aria-label="Điều hướng quản trị">
@@ -40,9 +36,12 @@
         <a class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}" href="{{ route('admin.reviews.index') }}">
             <i class="bi bi-star" aria-hidden="true"></i>Đánh giá
         </a>
+        <span class="admin-nav-label">HỆ THỐNG & PHÂN QUYỀN</span>
+        <a class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="{{ route('admin.staff.index') }}">
+            <i class="bi bi-person-badge" aria-hidden="true"></i>Quản lý nhân viên
+        </a>
+        <a class="{{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}" href="{{ route('admin.permissions.index') }}">
+            <i class="bi bi-shield-lock" aria-hidden="true"></i>Phân quyền sử dụng
+        </a>
     </nav>
-    <div class="admin-sidebar-foot">
-        <i class="bi bi-shield-lock" aria-hidden="true"></i>
-        Chỉ tài khoản quản trị được truy cập khu vực này.
-    </div>
 </div>

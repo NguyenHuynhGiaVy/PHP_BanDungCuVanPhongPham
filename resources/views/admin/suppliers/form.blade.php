@@ -8,7 +8,7 @@
 @section('content')
     <div class="admin-page-heading">
         <div><span class="admin-eyebrow">DANH MỤC & SẢN PHẨM</span><h1>{{ $isEditing ? 'Sửa nhà cung cấp' : 'Thêm nhà cung cấp' }}</h1><p>Thông tin liên hệ và trạng thái đối tác.</p></div>
-        <a class="btn btn-outline-secondary" href="{{ route('admin.suppliers.index') }}">Quay lại</a>
+        <a class="btn btn-outline-secondary admin-icon-button" href="{{ route('admin.suppliers.index') }}" title="Quay lại danh sách" aria-label="Quay lại danh sách"><i class="bi bi-arrow-left"></i></a>
     </div>
     <section class="admin-panel admin-form-panel">
         <form action="{{ $isEditing ? route('admin.suppliers.update', $supplier) : route('admin.suppliers.store') }}" method="POST">
@@ -41,7 +41,7 @@
                     <label class="form-label" for="supplier-address">Địa chỉ</label>
                     <textarea class="form-control" id="supplier-address" name="address" rows="3" maxlength="255">{{ old('address', $supplier->address) }}</textarea>
                 </div>
-                <div class="col-12"><button class="btn btn-primary" type="submit">{{ $isEditing ? 'Lưu thay đổi' : 'Tạo nhà cung cấp' }}</button></div>
+                <div class="col-12 d-flex justify-content-end pt-3 border-top"><button class="btn btn-primary admin-save-button" type="submit"><i class="bi bi-check2-circle me-1"></i>{{ $isEditing ? 'Lưu thay đổi' : 'Tạo nhà cung cấp' }}</button></div>
             </div>
         </form>
     </section>

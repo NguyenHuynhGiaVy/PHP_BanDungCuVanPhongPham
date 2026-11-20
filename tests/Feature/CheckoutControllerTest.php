@@ -12,6 +12,49 @@ class CheckoutControllerTest extends TestCase
     use CreatesCustomerCommerceRecords;
     use RefreshDatabase;
 
+    public function test_vnpay_payment_url_contains_required_parameters(): void
+    {
+        config()->set('services.vnpay.tmn_code', 'TESTTMNCODE');
+        config()->set('services.vnpay.hash_secret', 'TESTHASHSECRET');
+        config()->set('services.vnpay.url', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
+
+        $user = $this->createCustomer();
+        $product = $this->createProductRecord('vnpay-thanh-toan');
+        $variantId = $this->createVariantRecord($product['product_id'], 'VNPAY-001', 12500);
+        $this->createInventoryRecord($variantId, 5);
+
+        $cartId = DB::table('carts')->insertGetId([
+            'user_id' => $user->id,
+            'status' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('cart_items')->insert([
+            'cart_id' => $cartId,
+            'variant_id' => $variantId,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->post(route('checkout.store'), [
+                ...$this->checkoutDetails(),
+                'payment_method' => 'VNPAY',
+            ]);
+
+        $response->assertRedirect();
+        $location = (string) $response->headers->get('Location');
+        parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+
+        $this->assertSame('TESTTMNCODE', $query['vnp_TmnCode']);
+        $this->assertSame('2.1.0', $query['vnp_Version']);
+        $this->assertSame('pay', $query['vnp_Command']);
+        $this->assertSame('1250000', $query['vnp_Amount']);
+        $this->assertSame('HMACSHA512', $query['vnp_SecureHashType']);
+        $this->assertArrayHasKey('vnp_SecureHash', $query);
+    }
+
     public function test_mock_checkout_creates_order_payment_address_and_inventory_transaction_atomically(): void
     {
         $user = $this->createCustomer();
@@ -45,8 +88,8 @@ class CheckoutControllerTest extends TestCase
             ->assertOk()
             ->assertSee('Thanh toán mô phỏng')
             ->assertSee('images/products/checkout-item.jpg')
-            ->assertSee('id="checkout-coupon"', false)
-            ->assertSee('Mã giảm giá chưa được áp dụng trong luồng thanh toán mô phỏng.');
+            ->assertSee('id="coupon_code"', false)
+            ->assertSee('Mã khuyến mãi');
 
         $response = $this->actingAs($user)->post(route('checkout.store'), $this->checkoutDetails());
 
@@ -146,6 +189,7 @@ class CheckoutControllerTest extends TestCase
             'detail_address' => 'Số 1 phố Hàng',
             'note' => 'Giao giờ hành chính',
             'mock_payment_confirmed' => '1',
+            'payment_method' => 'MOCK',
         ];
     }
 }

@@ -9,16 +9,20 @@ use App\Models\Category;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\CloudinaryStorage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ProductController extends Controller
 {
+    public function __construct(private readonly CloudinaryStorage $cloudinaryStorage) {}
+
     public function index(Request $request): View
     {
         $filters = $request->validate([
@@ -28,7 +32,7 @@ class ProductController extends Controller
 
         return view('admin.products.index', [
             'products' => Product::query()
-                ->with(['category:id,name', 'brand:id,name'])
+                ->with(['category:id,name', 'brand:id,name', 'images:id,product_id,image_url,is_primary'])
                 ->withCount(['variants', 'reviews', 'wishlists'])
                 ->when($filters['q'] ?? null, static fn (Builder $query, string $term): Builder => $query
                     ->where(static fn (Builder $productQuery): Builder => $productQuery
@@ -54,7 +58,7 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated): void {
+        DB::transaction(function () use ($request, $validated): void {
             $product = Product::query()->create([
                 'category_id' => $validated['category_id'],
                 'brand_id' => $validated['brand_id'] ?? null,
@@ -78,13 +82,7 @@ class ProductController extends Controller
                 ]);
             }
 
-            if (($validated['image_url'] ?? '') !== '') {
-                $product->images()->create([
-                    'image_url' => $validated['image_url'],
-                    'is_primary' => true,
-                    'sort_order' => 0,
-                ]);
-            }
+            $this->storeProductImages($request, $product);
 
         });
 
@@ -109,7 +107,7 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($product, $validated): void {
+        DB::transaction(function () use ($request, $product, $validated): void {
             $product->update([
                 'category_id' => $validated['category_id'],
                 'brand_id' => $validated['brand_id'] ?? null,
@@ -133,13 +131,7 @@ class ProductController extends Controller
                 $variant->update($variantDetails);
             }
 
-            if (($validated['image_url'] ?? '') !== '') {
-                $product->images()->create([
-                    'image_url' => $validated['image_url'],
-                    'is_primary' => ! $product->images()->where('is_primary', true)->exists(),
-                    'sort_order' => (int) $product->images()->max('sort_order') + 1,
-                ]);
-            }
+            $this->storeProductImages($request, $product);
         });
 
         return redirect()->route('admin.products.index')->with('status', 'Thông tin sản phẩm đã được cập nhật.');
@@ -183,6 +175,42 @@ class ProductController extends Controller
             'compare_price' => $validated['compare_price'] ?? null,
             'status' => $validated['status'],
         ];
+    }
+
+    private function storeProductImages(SaveProductRequest $request, Product $product): void
+    {
+        $hasPrimaryImage = $product->images()->where('is_primary', true)->exists();
+        $nextSortOrder = (int) $product->images()->max('sort_order') + 1;
+
+        if (! $request->hasFile('images')) {
+            $legacyImageUrl = trim((string) $request->input('image_url', ''));
+            if ($legacyImageUrl !== '') {
+                $product->images()->create([
+                    'image_url' => $legacyImageUrl,
+                    'is_primary' => ! $hasPrimaryImage,
+                    'sort_order' => $nextSortOrder,
+                ]);
+            }
+
+            return;
+        }
+
+        foreach ($request->file('images') as $index => $uploadedFile) {
+            if (! $uploadedFile instanceof UploadedFile) {
+                continue;
+            }
+
+            $uploadedImage = $this->cloudinaryStorage->upload(
+                $uploadedFile,
+                'products/'.$product->slug,
+            );
+
+            $product->images()->create([
+                'image_url' => $uploadedImage['secure_url'],
+                'is_primary' => ! $hasPrimaryImage && $index === 0,
+                'sort_order' => $nextSortOrder + $index,
+            ]);
+        }
     }
 
     /**

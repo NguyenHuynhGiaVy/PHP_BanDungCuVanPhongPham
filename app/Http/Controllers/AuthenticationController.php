@@ -31,11 +31,19 @@ class AuthenticationController extends Controller
 
         $request->session()->regenerate();
 
-        $destination = $request->user()->role()->where('name', 'ADMIN')->exists()
-            ? route('admin.dashboard')
-            : route('account.show');
+        $user = $request->user();
+        $isAdministrator = $user->role()->where('name', 'ADMIN')->exists();
+        $isStaff = $user->role()->whereIn('name', ['ADMIN', 'STAFF'])->exists();
 
-        return redirect()->intended($destination);
+        if ($isAdministrator) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($isStaff) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->intended(route('account.show'));
     }
 
     public function createRegistration(): View
@@ -72,6 +80,6 @@ class AuthenticationController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('status', 'Bạn đã đăng xuất.');
+        return redirect()->route('home')->with('logout_status', 'Bạn đã đăng xuất khỏi tài khoản.');
     }
 }

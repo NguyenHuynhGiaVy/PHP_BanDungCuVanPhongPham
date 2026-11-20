@@ -45,13 +45,24 @@ class WishlistController extends Controller
         return view('wishlist.index', ['wishlists' => $wishlists]);
     }
 
+    /**
+     * Toggle: nếu đã yêu thích thì xóa, chưa thì thêm vào.
+     */
     public function store(Request $request, Product $product): RedirectResponse
     {
         abort_unless($product->status === 1 && $product->category()->where('status', 1)->exists(), 404);
 
-        $request->user()->wishlists()->firstOrCreate(['product_id' => $product->id]);
+        $existing = $request->user()->wishlists()->where('product_id', $product->id)->first();
 
-        return back()->with('status', 'Sản phẩm đã được lưu vào danh sách yêu thích.');
+        if ($existing) {
+            $existing->delete();
+
+            return back()->with('wishlist_status', 'removed');
+        }
+
+        $request->user()->wishlists()->create(['product_id' => $product->id]);
+
+        return back()->with('wishlist_status', 'added');
     }
 
     public function destroy(Request $request, Wishlist $wishlist): RedirectResponse
@@ -61,6 +72,6 @@ class WishlistController extends Controller
             ->firstOrFail()
             ->delete();
 
-        return back()->with('status', 'Sản phẩm đã được xóa khỏi danh sách yêu thích.');
+        return back()->with('wishlist_status', 'removed');
     }
 }

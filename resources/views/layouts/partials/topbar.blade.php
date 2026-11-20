@@ -1,26 +1,24 @@
-<div class="store-topbar">
-    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2 py-2">
-        <span class="store-topbar-message">
-            <i class="bi bi-truck me-1" aria-hidden="true"></i>
-            Văn phòng phẩm cho học tập và công việc mỗi ngày
-        </span>
-        <div class="store-topbar-links">
-            <span class="store-topbar-note">
-                <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
-                Thanh toán mô phỏng
-            </span>
-            <span class="store-topbar-note">
-                <i class="bi bi-telephone me-1" aria-hidden="true"></i>
-                Hotline: đang cập nhật
-            </span>
-            <a href="{{ route('products.index') }}">
-                <i class="bi bi-box-seam me-1" aria-hidden="true"></i>
-                Khám phá cửa hàng
-            </a>
-            <a href="{{ auth()->check() ? route('account.show') : route('login') }}">
-                <i class="bi bi-chat-dots me-1" aria-hidden="true"></i>
-                Hỗ trợ khách hàng
-            </a>
+<div class="store-topbar" aria-label="Thông báo khuyến mãi">
+    <div class="store-marquee">
+        <div class="store-marquee-track">
+            @for ($i = 0; $i < 2; $i++)
+                <span class="store-marquee-item">
+                <i class="bi bi-truck" aria-hidden="true"></i>
+                Miễn phí giao hàng cho đơn từ 500.000₫
+                </span>
+                <span class="store-marquee-item">
+                    <i class="bi bi-shield-check" aria-hidden="true"></i>
+                    Chính hãng 100% – Đổi trả trong 7 ngày
+                </span>
+                <span class="store-marquee-item">
+                    <i class="bi bi-receipt" aria-hidden="true"></i>
+                    Xuất hoá đơn VAT điện tử trong ngày
+                </span>
+                <span class="store-marquee-item">
+                    <i class="bi bi-telephone" aria-hidden="true"></i>
+                    Hotline: <strong>1900 1288</strong> (8h00 – 21h30)
+                </span>
+                @endfor
         </div>
     </div>
 </div>

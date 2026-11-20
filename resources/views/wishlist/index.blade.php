@@ -43,11 +43,17 @@
                     </div>
                     <div class="store-pagination mt-4">{{ $wishlists->links() }}</div>
                 @else
-                    <div class="store-empty-state">
-                        <span class="store-empty-icon"><i class="bi bi-heart" aria-hidden="true"></i></span>
-                        <h2>Danh sách yêu thích đang trống</h2>
-                        <p class="mb-0">Lưu sản phẩm bạn quan tâm để dễ dàng tìm lại.</p>
-                        <a class="btn btn-primary mt-2" href="{{ route('products.index') }}">Khám phá sản phẩm</a>
+                    <div class="card border-0 shadow-sm rounded-4 text-center py-5 px-3 my-4">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle text-primary mx-auto mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-heart fs-1"></i>
+                        </div>
+                        <h2 class="h4 fw-bold text-dark mb-2">Danh sách yêu thích đang trống</h2>
+                        <p class="text-muted small mb-4">Lưu sản phẩm bạn quan tâm để dễ dàng tìm lại.</p>
+                        <div>
+                            <a class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" href="{{ route('products.index') }}">
+                                <i class="bi bi-bag me-1"></i> Khám phá sản phẩm ngay
+                            </a>
+                        </div>
                     </div>
                 @endif
             </div>

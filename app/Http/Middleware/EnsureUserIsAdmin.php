@@ -12,7 +12,7 @@ class EnsureUserIsAdmin
     {
         abort_unless(
             $request->user()?->status === 1
-                && $request->user()->role()->where('name', 'ADMIN')->exists(),
+                && in_array($request->user()->role?->name, ['ADMIN', 'STAFF'], true),
             403,
         );
 

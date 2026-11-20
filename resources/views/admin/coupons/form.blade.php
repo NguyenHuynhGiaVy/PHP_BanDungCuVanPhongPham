@@ -6,7 +6,7 @@
 @section('page-heading', 'Mã giảm giá')
 
 @section('content')
-    <div class="admin-page-heading"><div><span class="admin-eyebrow">CHƯƠNG TRÌNH ƯU ĐÃI</span><h1>{{ $isEditing ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá' }}</h1><p>Lượt sử dụng không bị thay đổi khi lưu cấu hình.</p></div><a class="btn btn-outline-secondary" href="{{ route('admin.coupons.index') }}">Quay lại</a></div>
+    <div class="admin-page-heading"><div><span class="admin-eyebrow">CHƯƠNG TRÌNH ƯU ĐÃI</span><h1>{{ $isEditing ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá' }}</h1><p>Lượt sử dụng không bị thay đổi khi lưu cấu hình.</p></div><a class="btn btn-outline-secondary admin-icon-button" href="{{ route('admin.coupons.index') }}" title="Quay lại danh sách" aria-label="Quay lại danh sách"><i class="bi bi-arrow-left"></i></a></div>
     <section class="admin-panel admin-form-panel">
         <form action="{{ $isEditing ? route('admin.coupons.update', $coupon) : route('admin.coupons.store') }}" method="POST">
             @csrf
@@ -61,10 +61,7 @@
                         <option value="0" @selected((string) old('status', $coupon->status) === '0')>Đã tắt</option>
                     </select>
                 </div>
-                @if ($isEditing)
-                    <div class="col-12"><p class="form-text mb-0">Đã sử dụng {{ $coupon->used_count }} lần. Không thể chỉnh sửa số lượt đã sử dụng.</p></div>
-                @endif
-                <div class="col-12"><button class="btn btn-primary" type="submit">{{ $isEditing ? 'Lưu thay đổi' : 'Tạo mã' }}</button></div>
+                <div class="col-12 d-flex justify-content-end pt-3 border-top"><button class="btn btn-primary admin-save-button" type="submit"><i class="bi bi-check2-circle me-1"></i>{{ $isEditing ? 'Lưu thay đổi' : 'Tạo mã' }}</button></div>
             </div>
         </form>
     </section>

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -156,7 +158,7 @@ class ProductControllerTest extends TestCase
         $response->assertSee('Mực ra đều, phù hợp ghi chép hằng ngày.');
         $response->assertSee('10.000 ₫');
         $response->assertSee('14.000 ₫');
-        $response->assertSee('Còn hàng (8)');
+        $response->assertSee('Còn hàng (8 sản phẩm có sẵn)');
         $response->assertSee('data-variant-selector', false);
         $response->assertSee('data-gallery-thumbnail', false);
         $response->assertSee('images/products/but-bi-main.jpg');
@@ -178,6 +180,73 @@ class ProductControllerTest extends TestCase
 
         $this->get(route('products.show', 'giay-khong-hoat-dong'))->assertNotFound();
         $this->get(route('products.show', 'khong-ton-tai'))->assertNotFound();
+    }
+
+    public function test_customer_can_review_delivered_order_item(): void
+    {
+        $categoryId = $this->createCategory('Bút viết', 'but-viet-review');
+        $brandId = $this->createBrand('Thiên Long', 'thien-long-review');
+        $productId = $this->createProduct('Bút review', 'but-review', $categoryId, $brandId);
+        $variantId = $this->createVariant($productId, 'BUT-REVIEW', 'Ngòi 0.5 mm', 10000);
+
+        $roleId = DB::table('roles')->insertGetId([
+            'name' => 'CUSTOMER',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $userId = DB::table('users')->insertGetId([
+            'role_id' => $roleId,
+            'full_name' => 'Khách review',
+            'email' => 'review@example.test',
+            'password' => 'password',
+            'status' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $orderId = DB::table('orders')->insertGetId([
+            'user_id' => $userId,
+            'order_code' => 'ORDER-REVIEW-001',
+            'subtotal' => 10000,
+            'discount_amount' => 0,
+            'shipping_fee' => 0,
+            'total_amount' => 10000,
+            'payment_method' => 'MOCK',
+            'payment_status' => 'PAID',
+            'order_status' => 'DELIVERED',
+            'receiver_name' => 'Khách review',
+            'receiver_phone' => '0900000000',
+            'shipping_address' => 'Địa chỉ thử nghiệm',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $orderItemId = DB::table('order_items')->insertGetId([
+            'order_id' => $orderId,
+            'variant_id' => $variantId,
+            'product_name' => 'Bút review',
+            'variant_name' => 'Ngòi 0.5 mm',
+            'sku' => 'BUT-REVIEW',
+            'price' => 10000,
+            'quantity' => 1,
+            'subtotal' => 10000,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs(User::findOrFail($userId))
+            ->post(route('reviews.store', Product::findOrFail($productId)), [
+                'rating' => 4,
+                'comment' => 'Sản phẩm tốt.',
+                'order_item_id' => $orderItemId,
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('review_success');
+
+        $this->assertDatabaseHas('reviews', [
+            'user_id' => $userId,
+            'product_id' => $productId,
+            'order_item_id' => $orderItemId,
+            'rating' => 4,
+        ]);
     }
 
     private function createCategory(string $name, string $slug, int $status = 1): int

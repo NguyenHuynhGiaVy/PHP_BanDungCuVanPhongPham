@@ -16,35 +16,60 @@
                     <option value="1" @selected(request('status') === '1')>Đã duyệt</option>
                     <option value="2" @selected(request('status') === '2')>Đã ẩn</option>
                 </select>
-                <button class="btn btn-outline-primary btn-sm" type="submit">Lọc</button>
+                <button class="btn btn-outline-primary btn-sm admin-icon-button" type="submit" title="Lọc dữ liệu" aria-label="Lọc dữ liệu"><i class="bi bi-funnel"></i></button>
             </form>
         </div>
         <div class="table-responsive">
             <table class="table admin-table align-middle mb-0">
-                <thead><tr><th>Sản phẩm</th><th>Khách hàng</th><th>Điểm</th><th>Nội dung</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Sản phẩm / Đơn hàng</th>
+                        <th>Khách hàng</th>
+                        <th class="text-center">Điểm</th>
+                        <th>Nội dung</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
                 <tbody>
                     @forelse ($reviews as $review)
                         <tr>
-                            <td>{{ $review->product->name }}</td>
-                            <td>{{ $review->user->full_name }}</td>
-                            <td>{{ $review->rating }} / 5</td>
-                            <td class="admin-review-comment">{{ $review->comment ?: '—' }}</td>
                             <td>
+                                <strong>{{ $review->product->name }}</strong>
+                                <small class="d-block text-secondary">
+                                    {{ $review->orderItem?->order?->order_code ? 'Đơn #'.$review->orderItem->order->order_code : 'Đánh giá đã mua hàng' }}
+                                </small>
+                            </td>
+                            <td>{{ $review->user->full_name }}</td>
+                            <td class="text-center">
+                                <span class="fw-semibold text-warning">{{ $review->rating }}</span>
+                                <span class="text-secondary">/5</span>
+                            </td>
+                            <td class="admin-review-comment">{{ $review->comment ?: '—' }}</td>
+                            <td class="text-center">
                                 @switch($review->status)
                                     @case(0)<span class="badge text-bg-warning">Chờ duyệt</span>@break
                                     @case(1)<span class="badge text-bg-success">Đã duyệt</span>@break
                                     @default<span class="badge text-bg-secondary">Đã ẩn</span>
                                 @endswitch
                             </td>
-                            <td>
+                            <td class="text-center">
                                 <form action="{{ route('admin.reviews.update', $review) }}" method="POST" class="admin-review-status-form">
                                     @csrf @method('PUT')
-                                    <select class="form-select form-select-sm" name="status" aria-label="Trạng thái đánh giá">
-                                        <option value="0" @selected($review->status === 0)>Chờ duyệt</option>
-                                        <option value="1" @selected($review->status === 1)>Duyệt</option>
-                                        <option value="2" @selected($review->status === 2)>Ẩn</option>
-                                    </select>
-                                    <button class="btn btn-outline-primary btn-sm" type="submit">Lưu</button>
+                                    <textarea class="form-control form-control-sm mb-2" name="admin_reply" rows="2" maxlength="1000" placeholder="Phản hồi khách hàng">{{ $review->admin_reply }}</textarea>
+                                    <button class="btn btn-outline-primary btn-sm admin-icon-button" type="submit" name="status" value="{{ $review->status }}" title="Lưu phản hồi" aria-label="Lưu phản hồi">
+                                        <i class="bi bi-send"></i>
+                                    </button>
+                                    @if ($review->status !== 1)
+                                        <button class="btn btn-outline-success btn-sm admin-icon-button" type="submit" name="status" value="1" title="Duyệt đánh giá" aria-label="Duyệt đánh giá">
+                                            <i class="bi bi-check2-circle"></i>
+                                        </button>
+                                    @endif
+                                    @if ($review->status !== 2)
+                                        <button class="btn btn-outline-secondary btn-sm admin-icon-button" type="submit" name="status" value="2" title="Ẩn đánh giá" aria-label="Ẩn đánh giá">
+                                            <i class="bi bi-eye-slash"></i>
+                                        </button>
+                                    @endif
                                 </form>
                             </td>
                         </tr>
