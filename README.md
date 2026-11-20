@@ -20,7 +20,6 @@ Hệ thống thương mại điện tử bán văn phòng phẩm và dụng cụ
 - [Lệnh thường dùng](#lệnh-thường-dùng)
 - [Khắc phục sự cố](#khắc-phục-sự-cố)
 - [Bảo mật khi triển khai](#bảo-mật-khi-triển-khai)
-- [Tác giả](#tác-giả)
 
 ## Tính năng
 
