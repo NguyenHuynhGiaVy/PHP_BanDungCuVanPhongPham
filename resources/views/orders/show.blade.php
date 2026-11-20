@@ -172,7 +172,15 @@
                                 <i class="bi bi-info-circle me-1"></i> Mọi thắc mắc về đơn hàng, vui lòng liên hệ hotline hỗ trợ.
                             </p>
                         </div>
-                        @if ($order->order_status === 'SHIPPED')
+                        @if ($order->order_status === 'PENDING')
+                            <form action="{{ route('orders.cancel', $order) }}" method="POST" class="mt-3" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không? Số lượng sản phẩm sẽ được hoàn lại kho.');">
+                                @csrf
+                                @method('PATCH')
+                                <button class="btn btn-outline-danger w-100 fw-bold" type="submit">
+                                    <i class="bi bi-x-circle me-1"></i>Hủy đơn hàng
+                                </button>
+                            </form>
+                        @elseif ($order->order_status === 'SHIPPED')
                             <form action="{{ route('orders.received', $order) }}" method="POST" class="mt-3">
                                 @csrf
                                 @method('PATCH')
@@ -184,6 +192,11 @@
                             <div class="alert alert-success d-flex align-items-center gap-2 mt-3 mb-0 small">
                                 <i class="bi bi-check-circle-fill"></i>
                                 <span>Đơn hàng đã được xác nhận là đã nhận. Bạn có thể đánh giá sản phẩm.</span>
+                            </div>
+                        @elseif ($order->order_status === 'CANCELLED')
+                            <div class="alert alert-danger d-flex align-items-center gap-2 mt-3 mb-0 small">
+                                <i class="bi bi-x-circle-fill"></i>
+                                <span>Đơn hàng đã được hủy. Tồn kho sản phẩm đã được hoàn lại.</span>
                             </div>
                         @endif
                     </aside>

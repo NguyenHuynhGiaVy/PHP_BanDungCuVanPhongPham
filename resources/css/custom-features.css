@@ -225,3 +225,59 @@
     font-size: 13px;
     font-weight: 900;
 }
+
+/* ============================================================
+   PRODUCT DETAIL VARIANT PILLS
+   ============================================================ */
+.store-variant-selection {
+    margin-bottom: 1.25rem;
+}
+.store-variant-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.store-variant-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.48rem 0.9rem;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #1e293b;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    position: relative;
+    user-select: none;
+    text-align: left;
+}
+.store-variant-btn:hover:not(.is-out-of-stock) {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+    color: #1d4ed8;
+}
+.store-variant-btn.active {
+    border-color: #2563eb !important;
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 0 0 1px #2563eb;
+}
+.store-variant-btn.is-out-of-stock {
+    border-color: #e2e8f0;
+    background-color: #f8fafc;
+    color: #94a3b8;
+    opacity: 0.75;
+}
+.store-variant-btn .badge-price {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 400;
+}
+.store-variant-btn.active .badge-price {
+    color: #2563eb;
+    font-weight: 600;
+}

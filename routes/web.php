@@ -82,6 +82,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->whereNumber('order')->name('orders.show');
     Route::patch('/orders/{order}/received', [OrderController::class, 'confirmReceived'])->whereNumber('order')->name('orders.received');
+    Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel'])->whereNumber('order')->name('orders.cancel');
 
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/products/{product}', [WishlistController::class, 'store'])->whereNumber('product')->name('wishlist.store');
@@ -96,34 +97,62 @@ Route::prefix('admin')
     ->group(function (): void {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
         Route::get('/dashboard/export-excel', [AdminDashboardController::class, 'exportExcel'])
+            ->middleware('permission:view_dashboard')
             ->name('dashboard.export-excel');
-        Route::resource('products', AdminProductController::class)->except('show');
-        Route::resource('products.variants', AdminProductVariantController::class)
-            ->except(['index', 'show'])
-            ->scoped(['product' => 'id', 'variant' => 'id']);
-        Route::patch('products/{product}/images/{image}/primary', [AdminProductImageController::class, 'setPrimary'])
-            ->scopeBindings()
-            ->name('products.images.primary');
-        Route::delete('products/{product}/images/{image}', [AdminProductImageController::class, 'destroy'])
-            ->scopeBindings()
-            ->name('products.images.destroy');
-        Route::resource('categories', AdminCategoryController::class)->except('show');
-        Route::resource('brands', AdminBrandController::class)->except('show');
-        Route::resource('suppliers', AdminSupplierController::class)->except('show');
-        Route::get('inventory', [AdminInventoryController::class, 'index'])->name('inventory.index');
-        Route::post('inventory/{inventory}/adjustments', [AdminInventoryController::class, 'adjust'])->name('inventory.adjust');
-        Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
-        Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status.update');
-        Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
-        Route::get('customers/{customer}', [AdminCustomerController::class, 'show'])->name('customers.show');
-        Route::patch('customers/{customer}', [AdminCustomerController::class, 'update'])->name('customers.update');
-        Route::resource('coupons', AdminCouponController::class)->except('show');
-        Route::post('coupons/{coupon}/send', [AdminCouponController::class, 'send'])
-            ->name('coupons.send');
-        Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
-        Route::put('reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
-        Route::get('permissions', [AdminPermissionController::class, 'index'])->name('permissions.index');
-        Route::post('permissions', [AdminPermissionController::class, 'update'])->name('permissions.update');
-        Route::resource('staff', AdminStaffController::class)->except('show');
+
+        Route::middleware('permission:manage_products')->group(function (): void {
+            Route::resource('products', AdminProductController::class)->except('show');
+            Route::resource('products.variants', AdminProductVariantController::class)
+                ->except(['index', 'show'])
+                ->scoped(['product' => 'id', 'variant' => 'id']);
+            Route::patch('products/{product}/images/{image}/primary', [AdminProductImageController::class, 'setPrimary'])
+                ->scopeBindings()
+                ->name('products.images.primary');
+            Route::delete('products/{product}/images/{image}', [AdminProductImageController::class, 'destroy'])
+                ->scopeBindings()
+                ->name('products.images.destroy');
+        });
+
+        Route::middleware('permission:manage_categories')->group(function (): void {
+            Route::resource('categories', AdminCategoryController::class)->except('show');
+            Route::resource('brands', AdminBrandController::class)->except('show');
+            Route::resource('suppliers', AdminSupplierController::class)->except('show');
+        });
+
+        Route::middleware('permission:manage_inventory')->group(function (): void {
+            Route::get('inventory', [AdminInventoryController::class, 'index'])->name('inventory.index');
+            Route::post('inventory/{inventory}/adjustments', [AdminInventoryController::class, 'adjust'])->name('inventory.adjust');
+        });
+
+        Route::middleware('permission:manage_orders')->group(function (): void {
+            Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
+            Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+            Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status.update');
+        });
+
+        Route::middleware('permission:manage_customers')->group(function (): void {
+            Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+            Route::get('customers/{customer}', [AdminCustomerController::class, 'show'])->name('customers.show');
+            Route::patch('customers/{customer}', [AdminCustomerController::class, 'update'])->name('customers.update');
+        });
+
+        Route::middleware('permission:manage_coupons')->group(function (): void {
+            Route::resource('coupons', AdminCouponController::class)->except('show');
+            Route::post('coupons/{coupon}/send', [AdminCouponController::class, 'send'])
+                ->name('coupons.send');
+        });
+
+        Route::middleware('permission:manage_reviews')->group(function (): void {
+            Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+            Route::put('reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
+        });
+
+        Route::middleware('permission:manage_permissions')->group(function (): void {
+            Route::get('permissions', [AdminPermissionController::class, 'index'])->name('permissions.index');
+            Route::post('permissions', [AdminPermissionController::class, 'update'])->name('permissions.update');
+        });
+
+        Route::middleware('permission:manage_staff')->group(function (): void {
+            Route::resource('staff', AdminStaffController::class)->except('show');
+        });
     });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CancelOrder;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,5 +52,20 @@ class OrderController extends Controller
         }
 
         return back()->with('status', 'Bạn đã xác nhận nhận hàng thành công.');
+    }
+
+    public function cancel(Request $request, Order $order, CancelOrder $cancelOrder): RedirectResponse
+    {
+        abort_unless($order->user_id === $request->user()->id, 404);
+
+        if ($order->order_status !== 'PENDING') {
+            throw ValidationException::withMessages([
+                'order' => 'Chỉ có thể hủy đơn hàng khi đơn đang ở trạng thái Chờ xác nhận.',
+            ]);
+        }
+
+        $cancelOrder->handle($order, 'Khách hàng tự hủy đơn hàng', $request->user());
+
+        return back()->with('status', 'Đơn hàng #'.$order->order_code.' đã được hủy thành công. Tồn kho sản phẩm đã được hoàn lại.');
     }
 }

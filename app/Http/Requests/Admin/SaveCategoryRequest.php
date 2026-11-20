@@ -11,7 +11,7 @@ class SaveCategoryRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role()->where('name', 'ADMIN')->exists() ?? false;
+        return $this->user()?->hasPermission('manage_categories') ?? false;
     }
 
     /**

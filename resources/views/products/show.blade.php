@@ -187,19 +187,63 @@
                     <form action="{{ route('cart.items.store') }}" method="POST" data-product-cart-form>
                         @csrf
                         
-                        <!-- Phân loại / Biến thể -->
+                        <!-- Phân loại / Biến thể sản phẩm -->
                         @if ($product->variants->isNotEmpty())
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-secondary" for="product-variant">Phân loại sản phẩm</label>
+                            <div class="store-variant-selection mb-4">
+                                <label class="form-label small fw-bold text-dark d-flex align-items-center justify-content-between mb-2">
+                                    <span>
+                                        Chọn phân loại:
+                                        <strong class="text-primary ms-1" id="selected-variant-label">{{ $selectedVariant?->variant_name }}</strong>
+                                    </span>
+                                    <span class="text-muted small fw-normal">({{ $product->variants->count() }} lựa chọn)</span>
+                                </label>
+
+                                <div class="store-variant-pills d-flex flex-wrap gap-2" role="radiogroup" aria-label="Danh sách phân loại sản phẩm">
+                                    @foreach ($product->variants as $variant)
+                                        @php
+                                            $inventory = $variant->inventory;
+                                            $availableQuantity = $inventory
+                                                ? max(0, $inventory->quantity - $inventory->reserved_quantity)
+                                                : null;
+                                            $isOutOfStock = $availableQuantity !== null && $availableQuantity <= 0;
+                                            $isSelected = $selectedVariant?->id === $variant->id;
+                                        @endphp
+                                        <button
+                                            type="button"
+                                            class="btn store-variant-btn {{ $isSelected ? 'active' : '' }} {{ $isOutOfStock ? 'is-out-of-stock' : '' }}"
+                                            data-variant-id="{{ $variant->id }}"
+                                            data-variant-name="{{ $variant->variant_name }}"
+                                            data-price="{{ $variant->price }}"
+                                            data-compare-price="{{ $variant->compare_price }}"
+                                            data-sku="{{ $variant->sku }}"
+                                            data-available="{{ $availableQuantity ?? '' }}"
+                                            onclick="selectProductVariant({{ $variant->id }})"
+                                            title="{{ $isOutOfStock ? $variant->variant_name . ' (Tạm hết hàng)' : $variant->variant_name }}"
+                                            role="radio"
+                                            aria-checked="{{ $isSelected ? 'true' : 'false' }}"
+                                        >
+                                            <i class="bi bi-check2 check-icon text-primary" style="{{ $isSelected ? 'display: inline-block;' : 'display: none;' }}"></i>
+                                            <span class="fw-medium">{{ $variant->variant_name }}</span>
+                                            @if (!empty($variant->attributes) && is_array($variant->attributes))
+                                                <span class="small text-muted">({{ implode(', ', $variant->attributes) }})</span>
+                                            @endif
+                                            @if ($variant->price)
+                                                <span class="badge-price ms-1">({{ number_format((float) $variant->price, 0, ',', '.') }} ₫)</span>
+                                            @endif
+                                            @if ($isOutOfStock)
+                                                <span class="badge bg-secondary-subtle text-secondary border ms-1" style="font-size: 0.68rem;">Hết hàng</span>
+                                            @endif
+                                        </button>
+                                    @endforeach
+                                </div>
+
+                                {{-- Giữ input select tương thích form & test assertions --}}
                                 <select
-                                    class="form-select @error('variant_id') is-invalid @enderror"
+                                    class="d-none @error('variant_id') is-invalid @enderror"
                                     id="product-variant"
                                     name="variant_id"
                                     required
-                                    @error('variant_id') aria-describedby="product-variant-error" @enderror
-                                    @error('variant_id') aria-invalid="true" @enderror
                                     data-variant-selector
-                                    style="max-width: 380px;"
                                 >
                                     @foreach ($product->variants as $variant)
                                         @php
@@ -221,7 +265,7 @@
                                     @endforeach
                                 </select>
                                 @error('variant_id')
-                                    <div class="invalid-feedback d-block" id="product-variant-error">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block mt-2" id="product-variant-error">{{ $message }}</div>
                                 @enderror
                             </div>
                         @else
@@ -470,7 +514,157 @@
         </section>
     @endif
 
+    <style>
+        .store-variant-selection {
+            margin-bottom: 1.25rem;
+        }
+        .store-variant-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .store-variant-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.48rem 0.9rem;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #1e293b;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            position: relative;
+            user-select: none;
+            text-align: left;
+        }
+        .store-variant-btn:hover:not(.is-out-of-stock) {
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+            color: #1d4ed8;
+        }
+        .store-variant-btn.active {
+            border-color: #2563eb !important;
+            background-color: #eff6ff !important;
+            color: #1d4ed8 !important;
+            font-weight: 600 !important;
+            box-shadow: 0 0 0 1px #2563eb;
+        }
+        .store-variant-btn.is-out-of-stock {
+            border-color: #e2e8f0;
+            background-color: #f8fafc;
+            color: #94a3b8;
+            opacity: 0.75;
+        }
+        .store-variant-btn .badge-price {
+            font-size: 0.78rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+        .store-variant-btn.active .badge-price {
+            color: #2563eb;
+            font-weight: 600;
+        }
+    </style>
+
     <script>
+        function selectProductVariant(variantId) {
+            const select = document.querySelector('[data-variant-selector]');
+            if (!select) return;
+
+            select.value = String(variantId);
+
+            // Cập nhật giao diện các nút biến thể
+            const pills = document.querySelectorAll('.store-variant-btn');
+            let activeBtn = null;
+            pills.forEach(btn => {
+                const isMatch = btn.dataset.variantId === String(variantId);
+                btn.classList.toggle('active', isMatch);
+                btn.setAttribute('aria-checked', String(isMatch));
+                const checkIcon = btn.querySelector('.check-icon');
+                if (checkIcon) {
+                    checkIcon.style.display = isMatch ? 'inline-block' : 'none';
+                }
+                if (isMatch) activeBtn = btn;
+            });
+
+            if (activeBtn) {
+                // Nhãn biến thể đang chọn
+                const labelDisplay = document.getElementById('selected-variant-label');
+                if (labelDisplay) {
+                    labelDisplay.textContent = activeBtn.dataset.variantName || '';
+                }
+
+                // Cập nhật SKU
+                const skuElem = document.querySelector('[data-variant-sku]');
+                if (skuElem) {
+                    skuElem.textContent = activeBtn.dataset.sku || 'Đang cập nhật';
+                }
+
+                // Cập nhật Giá hiển thị
+                const price = Number(activeBtn.dataset.price);
+                const priceElem = document.querySelector('[data-variant-price]');
+                if (priceElem && Number.isFinite(price)) {
+                    priceElem.textContent = `${new Intl.NumberFormat('vi-VN').format(price)} ₫`;
+                }
+
+                // Cập nhật Giá so sánh / Giảm giá
+                const comparePrice = Number(activeBtn.dataset.comparePrice);
+                const compareElem = document.querySelector('[data-variant-compare]');
+                const discountElem = document.querySelector('.store-detail-discount-badge');
+                if (Number.isFinite(comparePrice) && comparePrice > price) {
+                    if (compareElem) {
+                        compareElem.hidden = false;
+                        compareElem.textContent = `${new Intl.NumberFormat('vi-VN').format(comparePrice)} ₫`;
+                    }
+                    if (discountElem) {
+                        const percent = Math.round(((comparePrice - price) / comparePrice) * 100);
+                        discountElem.hidden = false;
+                        discountElem.textContent = `-${percent}%`;
+                    }
+                } else {
+                    if (compareElem) compareElem.hidden = true;
+                    if (discountElem) discountElem.hidden = true;
+                }
+
+                // Cập nhật Tình trạng kho
+                const rawAvail = activeBtn.dataset.available;
+                const available = rawAvail === '' ? null : Number(rawAvail);
+                const stockElem = document.querySelector('[data-variant-stock]');
+                const submitButtons = document.querySelectorAll('[data-variant-submit]');
+                const qtyInput = document.getElementById('product-quantity');
+
+                if (stockElem) {
+                    if (available === null) {
+                        stockElem.innerHTML = '<span class="text-secondary"><i class="bi bi-info-circle me-1"></i> Đang cập nhật tồn kho</span>';
+                    } else if (available > 0) {
+                        stockElem.innerHTML = `<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Còn hàng (${available} sản phẩm có sẵn)</span>`;
+                    } else {
+                        stockElem.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i> Tạm hết hàng</span>';
+                    }
+                }
+
+                submitButtons.forEach(btn => {
+                    btn.disabled = available === null || available < 1;
+                });
+
+                if (qtyInput) {
+                    if (available === null) {
+                        qtyInput.removeAttribute('max');
+                    } else {
+                        qtyInput.max = String(Math.max(1, available));
+                        if (Number(qtyInput.value) > available) {
+                            qtyInput.value = String(Math.max(1, available));
+                        }
+                    }
+                }
+            }
+
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
         function adjustProductQuantity(delta) {
             const input = document.getElementById('product-quantity');
             if (!input) return;

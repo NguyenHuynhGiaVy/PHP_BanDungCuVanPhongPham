@@ -61,7 +61,17 @@
                         @csrf @method('PATCH')
                         <label class="form-label" for="order-status">Chuyển trạng thái</label>
                         <select class="form-select mb-2" id="order-status" name="order_status" required>
-                            @foreach ($nextStatuses as $status)<option value="{{ $status }}">{{ $status }}</option>@endforeach
+                            @foreach ($nextStatuses as $status)
+                                <option value="{{ $status }}">
+                                    {{ match($status) {
+                                        'PROCESSING' => 'PROCESSING (Đang xử lý)',
+                                        'SHIPPED' => 'SHIPPED (Đang giao hàng)',
+                                        'DELIVERED' => 'DELIVERED (Đã giao hàng)',
+                                        'CANCELLED' => 'CANCELLED (Hủy đơn & hoàn kho)',
+                                        default => $status
+                                    } }}
+                                </option>
+                            @endforeach
                         </select>
                         <button class="btn btn-primary w-100" type="submit">Cập nhật trạng thái</button>
                     </form>

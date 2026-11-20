@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CancelOrder;
 use App\Actions\CreateMockOrder;
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Coupon;
@@ -79,8 +80,11 @@ class CheckoutController extends Controller
             ->with('status', $message);
     }
 
-    public function vnpayReturn(Request $request, VNPayService $vnPayService): RedirectResponse
-    {
+    public function vnpayReturn(
+        Request $request,
+        VNPayService $vnPayService,
+        CancelOrder $cancelOrder,
+    ): RedirectResponse {
         $isValidSignature = $vnPayService->validateSignature($request);
         $responseCode = $request->input('vnp_ResponseCode');
         $txnRef = $request->input('vnp_TxnRef', '');
@@ -115,10 +119,17 @@ class CheckoutController extends Controller
             'status' => 'FAILED',
         ]);
 
+        if ($order->order_status !== 'CANCELLED') {
+            $cancelOrder->handle(
+                $order,
+                'Thanh toán VNPay không thành công hoặc bị hủy (Mã phản hồi: '.($responseCode ?? 'Không xác định').')'
+            );
+        }
+
         return redirect()
             ->route('orders.show', $order)
             ->withErrors([
-                'payment' => 'Giao dịch qua VNPay không thành công hoặc đã bị hủy (Mã phản hồi: '.($responseCode ?? 'Không xác định').').',
+                'payment' => 'Giao dịch qua VNPay không thành công hoặc đã bị hủy (Mã phản hồi: '.($responseCode ?? 'Không xác định').'). Đơn hàng đã được chuyển sang trạng thái HỦY và tồn kho đã được hoàn lại.',
             ]);
     }
 }

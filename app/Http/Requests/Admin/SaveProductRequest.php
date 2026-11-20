@@ -35,7 +35,7 @@ class SaveProductRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->role()->where('name', 'ADMIN')->exists() ?? false;
+        return $this->user()?->hasPermission('manage_products') ?? false;
     }
 
     /**

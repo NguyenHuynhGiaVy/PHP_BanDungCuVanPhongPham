@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\CancelOrder;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Models\Order;
@@ -45,14 +46,42 @@ class OrderController extends Controller
         ]);
     }
 
-    public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
-    {
+    public function updateStatus(
+        UpdateOrderStatusRequest $request,
+        Order $order,
+        CancelOrder $cancelOrder,
+    ): RedirectResponse {
         $status = $request->validated('order_status');
 
         if (! in_array($status, $this->nextStatuses($order), true)) {
             throw ValidationException::withMessages([
                 'order_status' => 'Không thể chuyển đơn hàng sang trạng thái đã chọn.',
             ]);
+        }
+
+        if ($status === 'CANCELLED') {
+            $cancelOrder->handle($order, 'Quản trị viên chuyển trạng thái sang Đã hủy', $request->user());
+
+            return redirect()->route('admin.orders.show', $order)->with('status', 'Đơn hàng đã được hủy và tồn kho đã được hoàn lại.');
+        }
+
+        if ($status === 'DELIVERED') {
+            $updateData = ['order_status' => 'DELIVERED'];
+
+            if ($order->payment_method === 'COD') {
+                $updateData['payment_status'] = 'PAID';
+            }
+
+            $order->update($updateData);
+
+            if ($order->payment_method === 'COD') {
+                $order->payments()->latest('id')->first()?->update([
+                    'status' => 'SUCCESS',
+                    'paid_at' => now(),
+                ]);
+            }
+
+            return redirect()->route('admin.orders.show', $order)->with('status', 'Đơn hàng đã được cập nhật sang trạng thái Đã giao hàng (DELIVERED).');
         }
 
         $order->update(['order_status' => $status]);
@@ -68,13 +97,13 @@ class OrderController extends Controller
         return match ($order->order_status) {
             'PENDING' => $order->payment_status === 'PAID'
                 || $order->payment_method === 'COD'
-                ? ['PROCESSING']
-                : [],
+                ? ['PROCESSING', 'CANCELLED']
+                : ['CANCELLED'],
             'PROCESSING' => $order->payment_status === 'PAID'
                 || $order->payment_method === 'COD'
-                ? ['SHIPPED']
-                : [],
-            'SHIPPED' => [],
+                ? ['SHIPPED', 'CANCELLED']
+                : ['CANCELLED'],
+            'SHIPPED' => ['DELIVERED', 'CANCELLED'],
             default => [],
         };
     }

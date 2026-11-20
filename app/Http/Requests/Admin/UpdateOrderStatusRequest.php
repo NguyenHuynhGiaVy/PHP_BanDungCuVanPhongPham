@@ -9,7 +9,7 @@ class UpdateOrderStatusRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role()->where('name', 'ADMIN')->exists() ?? false;
+        return $this->user()?->hasPermission('manage_orders') ?? false;
     }
 
     /**
@@ -18,7 +18,7 @@ class UpdateOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'order_status' => ['required', Rule::in(['PROCESSING', 'SHIPPED'])],
+            'order_status' => ['required', Rule::in(['PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'])],
         ];
     }
 }

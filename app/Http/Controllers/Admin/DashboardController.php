@@ -12,14 +12,49 @@ use App\Models\Review;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(Request $request): View|RedirectResponse
     {
+        $user = $request->user();
+
+        if (! $user?->hasPermission('view_dashboard')) {
+            if ($user?->hasPermission('manage_products')) {
+                return redirect()->route('admin.products.index');
+            }
+            if ($user?->hasPermission('manage_categories')) {
+                return redirect()->route('admin.categories.index');
+            }
+            if ($user?->hasPermission('manage_inventory')) {
+                return redirect()->route('admin.inventory.index');
+            }
+            if ($user?->hasPermission('manage_orders')) {
+                return redirect()->route('admin.orders.index');
+            }
+            if ($user?->hasPermission('manage_customers')) {
+                return redirect()->route('admin.customers.index');
+            }
+            if ($user?->hasPermission('manage_coupons')) {
+                return redirect()->route('admin.coupons.index');
+            }
+            if ($user?->hasPermission('manage_reviews')) {
+                return redirect()->route('admin.reviews.index');
+            }
+            if ($user?->hasPermission('manage_staff')) {
+                return redirect()->route('admin.staff.index');
+            }
+            if ($user?->hasPermission('manage_permissions')) {
+                return redirect()->route('admin.permissions.index');
+            }
+
+            abort(403, 'Bạn không có quyền truy cập khu vực quản trị.');
+        }
         $monthlyRevenue = collect(range(5, 0))
             ->map(function (int $monthsAgo): array {
                 $month = Carbon::now()->startOfMonth()->subMonths($monthsAgo);

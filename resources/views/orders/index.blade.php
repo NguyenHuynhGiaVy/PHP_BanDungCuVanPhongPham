@@ -60,6 +60,15 @@
                                                 <small class="text-muted d-block" style="font-size: 0.75rem;">Tổng tiền</small>
                                                 <strong class="text-danger fs-6">{{ number_format((float) $order->total_amount, 0, ',', '.') }} ₫</strong>
                                             </div>
+                                            @if ($order->order_status === 'PENDING')
+                                                <form action="{{ route('orders.cancel', $order) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button class="btn btn-outline-danger btn-sm px-2" type="submit">
+                                                        Hủy đơn
+                                                    </button>
+                                                </form>
+                                            @endif
                                             <a class="btn btn-outline-primary btn-sm px-3" href="{{ route('orders.show', $order) }}">
                                                 Chi tiết
                                             </a>
