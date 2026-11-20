@@ -288,9 +288,3 @@ npm run build                        # build tài nguyên production
 - Đặt `APP_ENV=production`, `APP_DEBUG=false` và `APP_URL` đúng tên miền; bật HTTPS.
 - Cân nhắc chuyển `SESSION_DRIVER`, `CACHE_STORE`, `QUEUE_CONNECTION` sang Redis khi lưu lượng lớn.
 - Cấu hình `MAIL_*` bằng dịch vụ gửi thư thật để chức năng quên mật khẩu hoạt động.
-
-## Tác giả
-
-**Thịnh Vũ**
-
-Xây dựng với Laravel, Bootstrap, Cloudinary và VNPay.
