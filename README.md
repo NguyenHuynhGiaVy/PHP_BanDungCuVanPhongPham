@@ -1,4 +1,4 @@
-# Việt Thịnh — Website bán văn phòng phẩm
+# Nhóm 5 — Website bán dụng cụ văn phòng phẩm
 
 Hệ thống thương mại điện tử bán văn phòng phẩm và dụng cụ văn phòng, xây dựng bằng **Laravel 13**. Gồm giao diện cửa hàng cho khách hàng và khu vực quản trị cho quản trị viên, nhân viên.
 
